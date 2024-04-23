@@ -96,31 +96,40 @@ const start = function(onStart) {
       /* Here, you can handle the service requests. */
 
       // Write some code...
-
-      local.routes.get(service, (error, service) => {
-        if (error) {
-          res.end(serialization.serialize(error));
-          console.error(error);
-          return;
+      
+      const serviceCallback = (e, v) => {
+        res.end(serialization.serialize([e, v]));
+      };
+      if (service == 'rpc') {
+        if (global.toLocal.has(method)) {
+          global.toLocal.get(method)(...args, serviceCallback);
+        } else {
+          serviceCallback(new Erorr('error'), null);
         }
-
-        /*
-      Here, we provide a default callback which will be passed to services.
-      It will be called by the service with the result of it's call
-      then it will serialize the result and send it back to the caller.
-        */
-        const serviceCallback = (e, v) => {
-          res.end(serialization.serialize([e, v]));
-        };
-
-        // Write some code...
-
-
-        console.log(`[SERVER] Args: ${JSON.stringify(args)}
-            ServiceCallback: ${serviceCallback}`);
-
-        service[method](...args, serviceCallback);
-      });
+      }
+      else {
+        local.routes.get(service, (error, service) => {
+          if (error) {
+            res.end(serialization.serialize(error));
+            console.error(error);
+            return;
+          }
+          /*
+        Here, we provide a default callback which will be passed to services.
+        It will be called by the service with the result of it's call
+        then it will serialize the result and send it back to the caller.
+          */
+  
+          // Write some code...
+  
+  
+          console.log(`[SERVER] Args: ${JSON.stringify(args)}
+              ServiceCallback: ${serviceCallback}`);
+  
+          service[method](...args, serviceCallback);
+        });
+      } 
+  
     });
   });
 
