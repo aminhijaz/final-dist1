@@ -1,4 +1,6 @@
 const distribution = require('../../distribution');
+const fetch = require('node-fetch');
+
 function createListener(nNodes, id, gid, callback) {
   return {
     map: 0,
@@ -48,6 +50,9 @@ function createListener(nNodes, id, gid, callback) {
             }
             const remote = {service: 'mr' + String(id), method: 'notify'};
             distribution[gid].comm.send([{phase: 'reduce'}], remote, (e, v) => {
+              if(e) {
+                this.callback(e,v)
+              }
             });
           });
         }
