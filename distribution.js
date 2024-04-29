@@ -5,6 +5,7 @@ const args = require('yargs').argv;
 const groupsTemplate = require('./distribution/all/groups');
 const fs = require('fs');
 global.fs = fs
+
 const readline = require('readline');
 const id = require("./distribution/util/id.js")
 const path = require('path');    
@@ -12,6 +13,7 @@ global.fetch = require("node-fetch")
 global.cheerio = require('cheerio');
 global.axios = require('axios')
 global.path = path
+
 // Default configuration
 global.nodeConfig = global.nodeConfig || {
   ip: '127.0.0.1',
@@ -73,7 +75,7 @@ global.nodesN = 3
 if(args.nodes) {
   global.nodesN = args.nodes
 }
-function domr() {
+function doCrawl() {
   let m1 = (key, value) => {
     try {
       let imageUrls = ""
@@ -101,7 +103,7 @@ function domr() {
                 if (imageResponse.ok) {
                     const filename = path.basename(imageUrl);
                     const imagePath = path.join(directory, 'content', 'images', filename);
-                    imageUrls += imagePath + '\n';
+                    imageUrls += imageUrl + '\n';
 
                     const imageStream = fs.createWriteStream(imagePath);
                     imageResponse.body.pipe(imageStream);
@@ -181,21 +183,132 @@ function domr() {
   }
   processFileLineByLine(args.urls)
 }
+
+
+
+
+function doIndex(filename) {
+  let m1 = (key, value) => {
+    try {
+      async function fetchAndWriteToFile(url, filePath) {
+        try {
+          const apiKey = 'acc_2f42af2f6c1e0ac';
+          const apiSecret = '1bf9962139729bd52076f679b70a5dca';
+          const imageUrl = url;
+          const apiUrl = `https://api.imagga.com/v2/tags?image_url=${encodeURIComponent(imageUrl)}`;
+
+          const response = await global.axios.get(apiUrl, {
+            auth: {
+              username: apiKey,
+              password: apiSecret
+            }
+          })
+            const content = response.data.result.tags
+            data = ''
+            for(t of content) {
+              data += t.tag.en + '\n'
+            }
+            directory = process.cwd()
+            fs.writeFile(`${directory}/content.txt`, data, 'utf8', (err) => {
+              if (err) {
+                  console.error('Error writing to file:', err);
+              } else {
+                  console.log('File written successfully!');
+              }
+          })
+        } catch (error) {
+          console.log(error)
+        }
+      }
+      fetchAndWriteToFile(value, "");
+    } catch (err) {
+      console.log(err);
+    }
+    let obj = {};
+    obj[key] = value;
+    return obj;
+  };
+  let r1 = (key, values) => {
+    let obj = {};
+    obj[values[0]] = 1;
+    console.log(obj)
+    return obj;
+  };
+  const doMapReduce = () => {
+    global.distribution.index.store.get(null, (e, v) => {
+      global.distribution.index.mr.exec({keys: v, map: m1, reduce: r1}, (e, v) => {
+      });
+    });
+  };
+  async function processFileLineByLine(filename) {
+    const rl = readline.createInterface({
+      input: fs.createReadStream(filename),
+      crlfDelay: Infinity
+    });
+    let key = 0
+    for await (const line of rl) {
+      // Assuming each line is in JSON format
+      try {
+        key+=10
+        let value = line
+        await new Promise((resolve, reject) => {
+          // Assuming distribution.crawler.store.put is defined elsewhere
+          distribution.index.store.put(value, key.toString(), (e, v) => {
+            if (e) {
+              reject(e);
+            } else {
+              resolve();
+            }
+          });
+        });
+      } catch (error) {
+        console.error('Error parsing line:', error);
+      }
+    }
+    doMapReduce();
+  }
+  processFileLineByLine(filename)
+}
+
 /* The following code is run when distribution.js is run directly */
 if (require.main === module) {
   global.nodeConfig.onStart =() => {
     const crawlerConfig = {gid: 'crawler'};
     groupsTemplate(crawlerConfig).add(crawlerConfig,global.nodeConfig, (e,v) => {
+      const indexConfig = {gid: 'index'};
+      groupsTemplate(indexConfig).add(indexConfig,global.nodeConfig, (e,v) => {
+        if(e) {
+          newGroup = {}
+          newGroup[id.getSID(global.nodeConfig)] = global.nodeConfig
+          groupsTemplate(indexConfig).put(indexConfig, newGroup, (e,v) => {  
+        })
+      }
+    })
       if(e) {
         newGroup = {}
         newGroup[id.getSID(global.nodeConfig)] = global.nodeConfig
         groupsTemplate(crawlerConfig).put(crawlerConfig, newGroup, (e,v) => {
-          domr()
-
         })
       }
     })
   }
     distribution.node.start(global.nodeConfig.onStart);
-
+    const rl = readline.createInterface({
+      input: process.stdin,
+      output: process.stdout
+    });
+    
+    // Function to handle command-line input
+    function handleInput(input) {
+      if(input === "crawl") {
+        doCrawl()
+      }
+      if(input.split(" ")[0] === "index") {
+        doIndex(input.split(" ")[1])
+      }
+    }
+    
+    // Listen for 'line' events (when user presses Enter)
+    rl.on('line', handleInput);
+    
 }
