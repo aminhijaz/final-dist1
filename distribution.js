@@ -9,6 +9,7 @@ global.fs = fs
 const readline = require('readline');
 const id = require("./distribution/util/id.js")
 const path = require('path');    
+const { availableParallelism } = require('os');
 global.fetch = require("node-fetch")
 global.cheerio = require('cheerio');
 global.axios = require('axios')
@@ -184,14 +185,12 @@ function doCrawl() {
   processFileLineByLine(args.urls)
 }
 
-
-
-
-function doIndex(filename) {
+async function doIndex(filename) {
   let m1 = (key, value) => {
     try {
       async function fetchAndWriteToFile(url, filePath) {
         try {
+          let toReturn =[];
           const apiKey = 'acc_2f42af2f6c1e0ac';
           const apiSecret = '1bf9962139729bd52076f679b70a5dca';
           const imageUrl = url;
@@ -205,34 +204,57 @@ function doIndex(filename) {
           })
             const content = response.data.result.tags
             data = ''
-            for(t of content) {
-              data += t.tag.en + '\n'
-            }
             directory = process.cwd()
-            fs.writeFile(`${directory}/content.txt`, data, 'utf8', (err) => {
-              if (err) {
-                  console.error('Error writing to file:', err);
-              } else {
-                  console.log('File written successfully!');
+            for (let t of content) {
+              let filename = `${directory}/content/tags/${t.tag.en}.txt`;
+              try {
+                await new Promise((resolve, reject) => {
+                  global.distribution.querier.store.get(t.tag.en, (error, value) => {
+                      if (error) {
+                        global.distribution.querier.store.put([imageUrl],t.tag.en, (e,v) => {
+                          if(e) {
+                            reject(e)
+                          }
+                          else {
+                            resolve(v);
+                          }
+                        })    
+                      } else {
+                        global.distribution.querier.store.put([...value, imageUrl], t.tag.en, (e,v) =>
+                        {
+                          if(e) {
+                            reject(e)
+                          }
+                          else{
+                            resolve(v)
+                          }
+                        })
+                      }
+                  });
+              });
+              } catch (err) {
+                  throw err; // Propagate other errors
               }
-          })
-        } catch (error) {
+            }
+                  } 
+                  catch (error) {
           console.log(error)
         }
       }
-      fetchAndWriteToFile(value, "");
+      fetchAndWriteToFile(value,"")
+      toReturn =[]
+      let obj = {}
+      obj[value] = 1
+      toReturn.push(obj)
+      return toReturn
     } catch (err) {
       console.log(err);
     }
-    let obj = {};
-    obj[key] = value;
-    return obj;
   };
   let r1 = (key, values) => {
     let obj = {};
-    obj[values[0]] = 1;
-    console.log(obj)
-    return obj;
+    obj[key] = 1;
+    return key;
   };
   const doMapReduce = () => {
     global.distribution.index.store.get(null, (e, v) => {
@@ -267,27 +289,37 @@ function doIndex(filename) {
     }
     doMapReduce();
   }
-  processFileLineByLine(filename)
+  await processFileLineByLine(filename)
 }
 
 /* The following code is run when distribution.js is run directly */
 if (require.main === module) {
   global.nodeConfig.onStart =() => {
-    const crawlerConfig = {gid: 'crawler'};
-    groupsTemplate(crawlerConfig).add(crawlerConfig,global.nodeConfig, (e,v) => {
-      const indexConfig = {gid: 'index'};
-      groupsTemplate(indexConfig).add(indexConfig,global.nodeConfig, (e,v) => {
+    const querierConfig = {gid: 'querier'};
+    groupsTemplate(querierConfig).add(querierConfig, global.nodeConfig, (e,v) => {
+      const crawlerConfig = {gid: 'crawler'};
+
+      groupsTemplate(crawlerConfig).add(crawlerConfig,global.nodeConfig, (e,v) => {
+        const indexConfig = {gid: 'index'};
+        groupsTemplate(indexConfig).add(indexConfig,global.nodeConfig, (e,v) => {
+          if(e) {
+            newGroup = {}
+            newGroup[id.getSID(global.nodeConfig)] = global.nodeConfig
+            groupsTemplate(indexConfig).put(indexConfig, newGroup, (e,v) => {  
+          })
+        }
+      })
         if(e) {
           newGroup = {}
           newGroup[id.getSID(global.nodeConfig)] = global.nodeConfig
-          groupsTemplate(indexConfig).put(indexConfig, newGroup, (e,v) => {  
-        })
-      }
-    })
+          groupsTemplate(crawlerConfig).put(crawlerConfig, newGroup, (e,v) => {
+          })
+        }
+      })
       if(e) {
         newGroup = {}
         newGroup[id.getSID(global.nodeConfig)] = global.nodeConfig
-        groupsTemplate(crawlerConfig).put(crawlerConfig, newGroup, (e,v) => {
+        groupsTemplate(querierConfig).put(querierConfig, newGroup, (e,v) => {  
         })
       }
     })
@@ -304,7 +336,15 @@ if (require.main === module) {
         doCrawl()
       }
       if(input.split(" ")[0] === "index") {
-        doIndex(input.split(" ")[1])
+         doIndex(input.split(" ")[1])
+      }
+      if(input.split(" ")[0] === "query") {
+        value = []
+        global.distribution.querier.store.get(input.split(" ")[1], (e,v) => {
+          value = v
+        })
+        console.log(value)
+
       }
     }
     
