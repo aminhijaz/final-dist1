@@ -122,7 +122,6 @@ store.get = function(id, callback) {
     
           })
           .catch((err) => {
-            console.log(err);
             callback(null, []);
           });
     } else {

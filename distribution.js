@@ -14,7 +14,8 @@ global.fetch = require("node-fetch")
 global.cheerio = require('cheerio');
 global.axios = require('axios')
 global.path = path
-
+const got = require('got'); // if you don't have "got" - install it with "npm install got"
+global.got = got
 // Default configuration
 global.nodeConfig = global.nodeConfig || {
   ip: '127.0.0.1',
@@ -76,11 +77,10 @@ global.nodesN = 3
 if(args.nodes) {
   global.nodesN = args.nodes
 }
-function doCrawl() {
+
+function doCrawl(urls) {
   let m1 = (key, value) => {
     try {
-      let imageUrls = ""
-
       async function fetchAndWriteToFile(url, filePath) {
         console.log(filePath)
         try {
@@ -92,7 +92,7 @@ function doCrawl() {
           const $ = global.cheerio.load(content);
           const images = $('img');
           // Extract src attribute from each image element
-          let downloadedImagesCount = 0;
+        
           images.each(async (index, element) => {
             let imageUrl = $(element).attr('src');
             if (imageUrl) {
@@ -100,33 +100,8 @@ function doCrawl() {
                 if (!/^(?:[a-z+]+:)?\/\//i.test(imageUrl)) {
                     imageUrl = new URL(imageUrl, url).href;
                 }
-                const imageResponse = await fetch(imageUrl);
-                if (imageResponse.ok) {
-                    const filename = path.basename(imageUrl);
-                    const imagePath = path.join(directory, 'content', 'images', filename);
-                    imageUrls += imageUrl + '\n';
-
-                    const imageStream = fs.createWriteStream(imagePath);
-                    imageResponse.body.pipe(imageStream);
-                    downloadedImagesCount++;
-                }
-            }
-        });
-    
-        // Wait for all image downloads to complete
-        await new Promise((resolve, reject) => {
-          const intervalId = setInterval(() => {
-              if (downloadedImagesCount === images.length) {
-                  clearInterval(intervalId);
-                  resolve();
-              }
-          }, 100);
-      });
-        fs.writeFile(filePath, imageUrls, 'utf8', (err) => {
-            if (err) {
-                console.error('Error writing to file:', err);
-            } else {
-                console.log('File written successfully!');
+                  distribution.index.store.put(imageUrl, null,  (e, v) => {
+                  });
             }
         });
         } catch (error) {
@@ -140,13 +115,12 @@ function doCrawl() {
       console.log(err);
     }
     let obj = {};
-    obj[key] = value;
+    obj["merge"] = value;
     return obj;
   };
   let r1 = (key, values) => {
     let obj = {};
-    obj[values[0]] = 1;
-    console.log(obj)
+    obj[key] = values;
     return obj;
   };
   const doMapReduce = () => {
@@ -170,6 +144,7 @@ function doCrawl() {
           // Assuming distribution.crawler.store.put is defined elsewhere
           distribution.crawler.store.put(value, key.toString(), (e, v) => {
             if (e) {
+              console.log(e)
               reject(e);
             } else {
               resolve();
@@ -182,69 +157,71 @@ function doCrawl() {
     }
     doMapReduce();
   }
-  processFileLineByLine(args.urls)
+  processFileLineByLine(urls)
 }
 
-async function doIndex(filename) {
-  let m1 = (key, value) => {
+async function doIndex() {
+  called = 0
+  let m1 =  async (key, value) => {
+    called+=1
     try {
+      function sleep(ms) {
+        return new Promise((resolve) => {
+          setTimeout(resolve, ms);
+        });
+      }
       async function fetchAndWriteToFile(url, filePath) {
-        try {
           let toReturn =[];
           const apiKey = 'acc_2f42af2f6c1e0ac';
           const apiSecret = '1bf9962139729bd52076f679b70a5dca';
           const imageUrl = url;
-          const apiUrl = `https://api.imagga.com/v2/tags?image_url=${encodeURIComponent(imageUrl)}`;
-
-          const response = await global.axios.get(apiUrl, {
-            auth: {
-              username: apiKey,
-              password: apiSecret
-            }
-          })
-            const content = response.data.result.tags
-            data = ''
-            directory = process.cwd()
-            for (let t of content) {
-              let filename = `${directory}/content/tags/${t.tag.en}.txt`;
-              try {
-                await new Promise((resolve, reject) => {
-                  global.distribution.querier.store.get(t.tag.en, (error, value) => {
-                      if (error) {
-                        global.distribution.querier.store.put([imageUrl],t.tag.en, (e,v) => {
-                          if(e) {
-                            reject(e)
+          const apiUrl = decodeURIComponent(`https://api.imagga.com/v2/tags?image_url=${encodeURIComponent(imageUrl)}`);
+            try {
+                const response = await got(apiUrl, {username: apiKey, password: apiSecret});
+                console.log("content")
+                const content = JSON.parse(response.body).result.tags
+                data = ''
+                directory = process.cwd()
+                for (let t of content) {
+                  let filename = `${directory}/content/tags/${t.tag.en}.txt`;
+                  try {
+                    await new Promise((resolve, reject) => {
+                      global.distribution.querier.store.get(t.tag.en, (error, value) => {
+                          if (error) {
+                            global.distribution.querier.store.put([imageUrl],t.tag.en, (e,v) => {
+                              if(e) {
+                                reject(e)
+                              }
+                              else {
+                                resolve(v);
+                              }
+                            })    
+                          } else {
+                            global.distribution.querier.store.put([...value, imageUrl], t.tag.en, (e,v) =>
+                            {
+                              if(e) {
+                                reject(e)
+                              }
+                              else{
+                                resolve(v)
+                              }
+                            })
                           }
-                          else {
-                            resolve(v);
-                          }
-                        })    
-                      } else {
-                        global.distribution.querier.store.put([...value, imageUrl], t.tag.en, (e,v) =>
-                        {
-                          if(e) {
-                            reject(e)
-                          }
-                          else{
-                            resolve(v)
-                          }
-                        })
-                      }
+                      });
                   });
-              });
-              } catch (err) {
-                  throw err; // Propagate other errors
-              }
+                  } catch (err) {
+                      throw err; // Propagate other errors
+                  }
+                }
+            } catch (error) {
+              console.log(error.response.body)
             }
-                  } 
-                  catch (error) {
-          console.log(error)
-        }
+          ;
       }
-      fetchAndWriteToFile(value,"")
+      await fetchAndWriteToFile(value,"")
       toReturn =[]
       let obj = {}
-      obj[value] = 1
+      obj["merge"] = value
       toReturn.push(obj)
       return toReturn
     } catch (err) {
@@ -253,43 +230,19 @@ async function doIndex(filename) {
   };
   let r1 = (key, values) => {
     let obj = {};
-    obj[key] = 1;
-    return key;
+    obj[key] = values;
+    return obj;
   };
-  const doMapReduce = () => {
+  const doMapReduce = async () => {
     global.distribution.index.store.get(null, (e, v) => {
-      global.distribution.index.mr.exec({keys: v, map: m1, reduce: r1}, (e, v) => {
+      console.log("out")
+      new Promise((resolve, reject) => {
+        global.distribution.index.mr.exec({keys: v, map: m1, reduce: r1}, (e, v) => {
+      })
       });
     });
   };
-  async function processFileLineByLine(filename) {
-    const rl = readline.createInterface({
-      input: fs.createReadStream(filename),
-      crlfDelay: Infinity
-    });
-    let key = 0
-    for await (const line of rl) {
-      // Assuming each line is in JSON format
-      try {
-        key+=10
-        let value = line
-        await new Promise((resolve, reject) => {
-          // Assuming distribution.crawler.store.put is defined elsewhere
-          distribution.index.store.put(value, key.toString(), (e, v) => {
-            if (e) {
-              reject(e);
-            } else {
-              resolve();
-            }
-          });
-        });
-      } catch (error) {
-        console.error('Error parsing line:', error);
-      }
-    }
-    doMapReduce();
-  }
-  await processFileLineByLine(filename)
+  await doMapReduce()
 }
 
 /* The following code is run when distribution.js is run directly */
@@ -332,23 +285,22 @@ if (require.main === module) {
     
     // Function to handle command-line input
     function handleInput(input) {
-      if(input === "crawl") {
-        doCrawl()
+      if(input.split(" ")[0] === "crawl") {
+        doCrawl(input.split(" ")[1])
       }
       if(input.split(" ")[0] === "index") {
-         doIndex(input.split(" ")[1])
+         doIndex()
       }
       if(input.split(" ")[0] === "query") {
         value = []
         global.distribution.querier.store.get(input.split(" ")[1], (e,v) => {
-          value = v
+          if(e) {
+            console.log("not found")
+          }
         })
-        console.log(value)
-
       }
     }
     
     // Listen for 'line' events (when user presses Enter)
     rl.on('line', handleInput);
-    
 }

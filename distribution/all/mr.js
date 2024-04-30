@@ -140,11 +140,11 @@ function createMrService(c,
                 global.distribution.local.mem.get({
                   key: key,
                   gid:
-                  this.gid}, (e, value) => {
+                  this.gid}, async (e, value) => {
                   if (e) {
                     reject(e);
                   } else {
-                    let res = this.mapFn(key, value);
+                    let res = await this.mapFn(key, value);
                     for (let i=0; i<this.count; i++) {
                       res = this.mapFn(Object.keys(res)[0],
                           Object.values(res)[0]);
@@ -154,11 +154,11 @@ function createMrService(c,
                 });
               } else {
                 global.distribution.local.store.get({key: key, gid:
-                  this.gid}, (e, value) => {
+                  this.gid}, async (e, value) => {
                   if (e) {
                     reject(e);
                   } else {
-                    resolve(this.mapFn(key, value));
+                    resolve(await this.mapFn(key, value));
                   }
                 });
               }
@@ -289,7 +289,7 @@ const mr = function(config) {
   let context = {};
   context.gid = config.gid || 'all';
   return {
-    exec: (configuration, callback) => {
+    exec: async (configuration, callback) => {
       global.mrc +=1;
       /* Change this with your own exciting Map Reduce code! */
       const mapfn = configuration.map;
