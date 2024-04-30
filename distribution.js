@@ -244,37 +244,48 @@ async function doIndex() {
   };
   await doMapReduce()
 }
+nodes = {}
+function writeToOrAppendFileSync(filename, content) {
+  try {
+      const fileContent = fs.readFileSync(filename, 'utf8');
+      const lines = fileContent.split('\n');
+      for(line of lines) {
+        console.log("node:::")
+        console.log(line)
+        if(line === content) {
+          continue
+        }
+        if (line.trim() === '') {
+          continue;
+      }
+        splitted = line.split(":")
+        node = {ip: splitted[0], port: splitted[1]}
+        nodes[id.getSID(node)] = node
+      }
+      if (fileContent.includes(content)) {
+          return;
+      }
+      fs.appendFileSync(filename, content + '\n');
+      console.log("Content appended to the file successfully.");
+  } catch (err) {
+      console.error("Error:", err);
+  }
+}
+
+// Usage example
 
 /* The following code is run when distribution.js is run directly */
 if (require.main === module) {
   global.nodeConfig.onStart =() => {
+    writeToOrAppendFileSync("nodes.txt", `${global.nodeConfig.ip}:${global.nodeConfig.port}`)
     const querierConfig = {gid: 'querier'};
-    groupsTemplate(querierConfig).add(querierConfig, global.nodeConfig, (e,v) => {
-      const crawlerConfig = {gid: 'crawler'};
-
-      groupsTemplate(crawlerConfig).add(crawlerConfig,global.nodeConfig, (e,v) => {
-        const indexConfig = {gid: 'index'};
-        groupsTemplate(indexConfig).add(indexConfig,global.nodeConfig, (e,v) => {
-          if(e) {
-            newGroup = {}
-            newGroup[id.getSID(global.nodeConfig)] = global.nodeConfig
-            groupsTemplate(indexConfig).put(indexConfig, newGroup, (e,v) => {  
-          })
-        }
-      })
-        if(e) {
-          newGroup = {}
-          newGroup[id.getSID(global.nodeConfig)] = global.nodeConfig
-          groupsTemplate(crawlerConfig).put(crawlerConfig, newGroup, (e,v) => {
-          })
-        }
-      })
-      if(e) {
-        newGroup = {}
-        newGroup[id.getSID(global.nodeConfig)] = global.nodeConfig
-        groupsTemplate(querierConfig).put(querierConfig, newGroup, (e,v) => {  
-        })
-      }
+    const crawlerConfig = {gid: 'crawler'};
+    const indexConfig = {gid: 'index'};
+    groupsTemplate(querierConfig).put(querierConfig, nodes, (e,v) => {  
+    })
+    groupsTemplate(indexConfig).put(indexConfig, nodes, (e,v) => {  
+    })
+    groupsTemplate(crawlerConfig).put(crawlerConfig, nodes, (e,v) => {
     })
   }
     distribution.node.start(global.nodeConfig.onStart);
