@@ -330,6 +330,7 @@ const mr = function(config) {
                 service: 'routes', method: 'put'};
               global.distribution.local.comm.send([mrService,
                 'mr' + String(global.mrC)], remote, (e, value) => {
+                console.log("here")
                 if (e) {
                   return callback(e, null);
                 }
