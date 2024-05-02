@@ -394,7 +394,6 @@ if (require.main === module) {
       groupsTemplate(indexConfig).put(indexConfig, indexNodes, (e,v) => {
         if(e) {
           console.log(e)
-
         }
       })
       remote = {service: "groups", method: "put"}
