@@ -39,7 +39,7 @@ store.put = function(obj, id, callback) {
   }
   if (typeof id === 'string') {
     const directoryName = getNID(global.nodeConfig).replace(/\W/g, '');
-    const directoryPath = path.join(__dirname, 'local', "res",directoryName);
+    const directoryPath = path.join(__dirname, 'local', directoryName);
     const filePath = path.join(directoryPath, encodeUnicode(id));
     fs.access(directoryPath, fs.constants.F_OK)
         .then(() => {
@@ -54,7 +54,6 @@ store.put = function(obj, id, callback) {
           return callback(null, obj);
         })
         .catch((err) => {
-          console.log(err)
           callback(new Error('put error'), null);
         });
   } else {
@@ -63,7 +62,7 @@ store.put = function(obj, id, callback) {
     }
     const newId = encodeUnicode(id.key)
     const directoryName = getNID(global.nodeConfig).replace(/\W/g, '');
-    let directoryPath = path.join(__dirname, "res", id.gid, directoryName);
+    let directoryPath = path.join(__dirname, id.gid, directoryName);
     let filePath = path.join(directoryPath, newId);
     fs.access(directoryPath, fs.constants.F_OK)
         .then(() => {
@@ -78,7 +77,6 @@ store.put = function(obj, id, callback) {
           return callback(null, obj);
         })
         .catch((err) => {
-          console.log(err)
           callback(new Error('put error'), null);
         });
   }
@@ -87,7 +85,7 @@ store.put = function(obj, id, callback) {
 store.get = function(id, callback) {
   if (id === null) {
     const directoryName = getNID(global.nodeConfig).replace(/\W/g, '');
-    const directoryPath = path.join(__dirname, 'local', "res",directoryName);
+    const directoryPath = path.join(__dirname, 'local', directoryName);
     fs.readdir(directoryPath)
         .then((files) => {
 
@@ -96,7 +94,6 @@ store.get = function(id, callback) {
           }));
         })
         .catch((err) => {
-          console.log(err)
           callback(new Error('get error'), null);
         });
   }
@@ -104,14 +101,13 @@ store.get = function(id, callback) {
         newId = encodeUnicode(id)
 
     const directoryName = getNID(global.nodeConfig).replace(/\W/g, '');
-    const filePath = path.join(__dirname, 'local', "res",directoryName, newId);
+    const filePath = path.join(__dirname, 'local', directoryName, newId);
     fs.readFile(filePath, 'utf8')
         .then((fileContent) => {
           const parsedData = serialization.deserialize(fileContent);
           callback(null, parsedData);
         })
         .catch((err) => {
-          console.log(err)
           callback(new Error('get error'), null);
         });
   } else if (id !== null) {
@@ -131,14 +127,13 @@ store.get = function(id, callback) {
     } else {
       newId = encodeUnicode(id.key)
       const directoryName = getNID(global.nodeConfig).replace(/\W/g, '');
-      const filePath = path.join(__dirname, "res", id.gid, directoryName, newId);
+      const filePath = path.join(__dirname, id.gid, directoryName, newId);
       fs.readFile(filePath, 'utf8')
           .then((fileContent) => {
             const parsedData = serialization.deserialize(fileContent);
             callback(null, parsedData);
           })
           .catch((err) => {
-            console.log(err)
             callback(new Error('get error'), null);
           });
     }
@@ -153,7 +148,7 @@ store.del = function(id, callback) {
         newId = encodeUnicode(id)
 
     const directoryName = getNID(global.nodeConfig).replace(/\W/g, '');
-    const filePath = path.join(__dirname, 'local', "res",directoryName, newId);
+    const filePath = path.join(__dirname, 'local', directoryName, newId);
     let deletedObj;
     fs.readFile(filePath, 'utf8')
         .then((fileContent) => {
@@ -172,7 +167,7 @@ store.del = function(id, callback) {
     }
     newId = encodeUnicode(id.key)
     const directoryName = getNID(global.nodeConfig).replace(/\W/g, '');
-    const filePath = path.join(__dirname, "res",id.gid, directoryName, newId);
+    const filePath = path.join(__dirname, id.gid, directoryName, newId);
     let deletedObj;
     fs.readFile(filePath, 'utf8')
         .then((fileContent) => {
@@ -188,3 +183,4 @@ store.del = function(id, callback) {
   }
 };
 module.exports = store;
+
