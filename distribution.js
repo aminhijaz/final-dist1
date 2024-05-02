@@ -76,7 +76,7 @@ global.fetchAndWriteToFile = async (urls, key) => {
       return
     }
     const content = await response.text();
-    console.log(`${index}, ${(process.memoryUsage().heapUsed / 1024 / 1024).toFixed(2)}mb`);
+    console.log(`${concurrentRequests}, ${(process.memoryUsage().heapUsed / 1024 / 1024).toFixed(2)}mb`);
 
     let $ = global.cheerio.load(content);
     const images = $('img');       
