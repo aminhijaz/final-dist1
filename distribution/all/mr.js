@@ -305,6 +305,7 @@ const mr = function(config) {
             const ip = await fetch("https://httpbin.io/ip")
             const r = await ip.json()
             const listenerIP = r.origin.split(":")[0]
+            const listenerNode = {ip: listenerIP, port: 8080}
             global.distribution.local.routes.put(
                 createListener(nNodes,
                     String(global.mrC),
@@ -316,7 +317,7 @@ const mr = function(config) {
                 });
             for (key of Object.keys(v)) {
               const node = v[key];
-              let mrService = createMrService(listenerIP,
+              let mrService = createMrService(listenerNode,
                   node,
                   String(global.mrC),
                   context.gid,
