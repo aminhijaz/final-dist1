@@ -11,6 +11,7 @@ const lockfile = require('proper-lockfile');
 global.lockfile = lockfile
 const readline = require('readline');
 const id = require("./distribution/util/id.js")
+global.id = id
 const path = require('path');    
 const { availableParallelism } = require('os');
 global.fetch = require("node-fetch")
@@ -19,7 +20,6 @@ global.axios = require('axios')
 global.path = path
 const got = require('got');
 global.got = got
-// Default configuration
 global.nodeConfig = global.nodeConfig || {
   ip: '127.0.0.1',
   port: 8080,
@@ -50,69 +50,92 @@ let r1 = (key, values) => {
 
 let m1c = async (key, value) => {  
   try {
-    const directory = process.cwd(); // Get the current working directory
-    console.log(`${directory}/${key}.txt`)
-    await global.fetchAndWriteToFile(value);
+    await global.fetchAndWriteToFile(value, key);
   } catch (err) {
     console.log(err);
   }
   let obj = {};
-  obj["merge"] = value;
+  obj[""] = 1;
   return obj;
 };
+SIZE = 100
 
-global.fetchAndWriteToFile = async (url) => {
-  if(global.lockingUtility.visited(url)) {
-    return
-  }
-try {
-  const response = await global.fetch(url);
-  if (!response.ok) {
-    throw new Error(`HTTP error! status: ${response.status}`);
-  }
-  const content = await response.text();
-  let $ = global.cheerio.load(content);
-  const images = $('img');        
-  images.each(async (index, element) => {
-    let imageUrl = $(element).attr('src');
-    if (imageUrl) {
-        // Check if the URL is relative, and if so, prepend it with the base URL
-        if (!/^(?:[a-z+]+:)?\/\//i.test(imageUrl)) {
-            imageUrl = new URL(imageUrl, url).href;
-        }
-          distribution.index.store.put(imageUrl, null,  (e, v) => {
-          });
+global.fetchAndWriteToFile = async (urls, key) => {
+  console.log(urls)
+  for(url of urls) {
+    if(global.lockingUtility.visited(url)) {
+      return
     }
-});
-$ = global.cheerio.load(content);
-const links = $('a')
-keys = []
-values = []
-global.distribution.crawler.store.del(url, (e,v) => {
-})
-links.each(async (index, element) => {
-  let u = $(element).attr('href');
-  if (!/^(?:[a-z+]+:)?\/\//i.test(u)) {
-    u = new URL(u, url).href;
-}
-
-let k = index *100
-keys.push(k.toString)
-global.distribution.crawler.store.put(u, k.toString(), (e,v) => {
-  if(e) {
-    console.log(e)
+  try {
+    const response = await global.fetch(url);
+    if (!response.ok) {
+      console.log(url)
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+    const content = await response.text();
+    let $ = global.cheerio.load(content);
+    const images = $('img');        
+    images.each(async (index, element) => {
+      let imageUrl = $(element).attr('src');
+      if (imageUrl) {
+          // Check if the URL is relative, and if so, prepend it with the base URL
+          if (!/^(?:[a-z+]+:)?\/\//i.test(imageUrl)) {
+            try {
+              imageUrl = new URL(imageUrl, url).href;
+            }
+              catch(error) {
+                console.log(error)
+                return
+              }
+          }
+            distribution.index.store.put(imageUrl, null,  (e, v) => {
+            });
+      }
+  });
+  $ = global.cheerio.load(content);
+  const links = $('a')
+  keys = []
+  values = []
+  send = false
+  global.distribution.crawler.store.del(key, (e,v) => {
+  })
+  let toSend =[]
+  let k =0
+  links.each(async (index, element) => {
+    let u = $(element).attr('href');
+    if (!/^(?:[a-z+]+:)?\/\//i.test(u)) {
+      try {
+        u = new URL(u, url).href;
+      } catch(error) {
+        return
+      }
   }
-})
-});
-global.distribution.crawler.mr.exec({keys: keys, map: m1c, reduce: r1}, (e, v) => {
-});
+  toSend.push(u)
+  k+=1
+  send = true
+  if(k === SIZE) {
+    send = false
+    keys.push(k)
+    global.distribution.crawler.store.put(toSend, k.toString(), (e,v) => {
+      if(e) {
+        console.log(e)
+      }
+    })
+    toSend = []
+  }
+  });
+  if(send) {
+    global.distribution.crawler.store.put(toSend, k.toString(), (e,v) => {
+      if(e) {
+        console.log(e)
+      }
+    })  
+  }
 
-
-} catch (error) {
-  console.log(error)
-}
-
-  
+  } catch (error) {
+    console.log(error)
+  }
+  }
 }
 
 
@@ -164,6 +187,12 @@ function doCrawl(urls) {
   const doMapReduce = () => {
     global.distribution.crawler.store.get(null, (e, v) => {
       global.distribution.crawler.mr.exec({keys: v, map: m1c, reduce: r1}, (e, v) => {
+        if(v) {
+          doMapReduce()
+        }
+        if(e) {
+          console.log(e)
+        }
       });
     });
   };
@@ -173,25 +202,38 @@ function doCrawl(urls) {
       crlfDelay: Infinity
     });
     let key = 0
+    let toSend = []
+    send = false
     for await (const line of rl) {
       // Assuming each line is in JSON format
       try {
-        key+=10
-        let value = line
-        await new Promise((resolve, reject) => {
-          // Assuming distribution.crawler.store.put is defined elsewhere
-          distribution.crawler.store.put(value, key.toString(), (e, v) => {
-            if (e) {
-              console.log(e)
-              reject(e);
-            } else {
-              resolve();
-            }
-          });
-        });
+        key+=1
+        toSend.push(line)
+        send = true
+        if(key === SIZE) {
+          send = false
+          await new Promise((resolve, reject) => {
+            distribution.crawler.store.put(toSend, key.toString(), (e, v) => {
+              if (e) {
+                console.log(e)
+                reject(e);
+              } else {
+                resolve();
+              }
+            });
+          });  
+          toSend = []
+        }
       } catch (error) {
         console.error('Error parsing line:', error);
       }
+    }
+    if(send) {
+      distribution.crawler.store.put(toSend, key.toString(), (e, v) => {
+        if (e) {
+          console.log(e)
+        }
+      });
     }
     doMapReduce();
   }
@@ -216,7 +258,6 @@ async function doIndex() {
           const apiUrl = decodeURIComponent(`https://api.imagga.com/v2/tags?image_url=${encodeURIComponent(imageUrl)}`);
             try {
                 const response = await got(apiUrl, {username: apiKey, password: apiSecret});
-                console.log("content")
                 const content = JSON.parse(response.body).result.tags
                 data = ''
                 directory = process.cwd()
@@ -273,7 +314,6 @@ async function doIndex() {
   };
   const doMapReduce = async () => {
     global.distribution.index.store.get(null, (e, v) => {
-      console.log("out")
       new Promise((resolve, reject) => {
         global.distribution.index.mr.exec({keys: v, map: m1, reduce: r1}, (e, v) => {
       })
@@ -297,9 +337,7 @@ function writeToOrAppendFileSync(filename, content) {
         splitted = line.split(":")
         node = {ip: splitted[0], port: splitted[1]}
         nodes[id.getSID(node)] = node
-      }
-      if (fileContent.includes(content)) {
-          return;
+        
       }
       splitted = content.split(":")
       node = {ip: splitted[0], port: splitted[1]}
@@ -317,17 +355,14 @@ function writeToOrAppendFileSync(filename, content) {
 if (require.main === module) {
   global.nodeConfig.onStart =() => {
     writeToOrAppendFileSync("nodes.txt", `${global.nodeConfig.ip}:${global.nodeConfig.port}`)
-    const querierConfig = {gid: 'querier'};
-    const crawlerConfig = {gid: 'crawler'};
-    const indexConfig = {gid: 'index'};
-    console.log(nodes)
+    const querierConfig = {gid: 'querier', hash: global.id.consistentHash};
+    const crawlerConfig = {gid: 'crawler', hash: global.id.consistentHash};
+    const indexConfig = {gid: 'index', hash: global.id.consistentHash};
     groupsTemplate(querierConfig).put(querierConfig, nodes, (e,v) => {  
     })
     groupsTemplate(indexConfig).put(indexConfig, nodes, (e,v) => {  
     })
     groupsTemplate(crawlerConfig).put(crawlerConfig, nodes, (e,v) => {
-      console.log(e)
-      console.log(v)
     })
   }
     distribution.node.start(global.nodeConfig.onStart);
@@ -335,7 +370,6 @@ if (require.main === module) {
       input: process.stdin,
       output: process.stdout
     });
-    console.log(id.getSID(global.nodeConfig))
     // Function to handle command-line input
     function handleInput(input) {
       if(input.split(" ")[0] === "crawl") {

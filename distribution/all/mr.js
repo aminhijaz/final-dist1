@@ -13,7 +13,6 @@ function createListener(nNodes, id, gid, callback) {
         if (this.map === nNodes) {
           const remote = {service: 'mr' + String(id), method: 'map'};
           global.distribution[gid].comm.send([], remote, (e, v) => {
-            console.log(v);
             if (Object.keys(e).length !== 0) {
               return this.callback(e, null);
             }
@@ -174,7 +173,6 @@ function createMrService(c,
                         console.error('Error saving map results:', error);
                         callback(error, null);
                       } else {
-                        console.log('mapRes successfully saved', result);
                         this.notify({phase: 'shuffle'}, callback);
                         return callback(null, mapRes);
                       }
@@ -187,7 +185,6 @@ function createMrService(c,
                         console.error('Error saving map results:', error);
                         callback(error, null);
                       } else {
-                        console.log('mapRes successfully saved', result);
                         this.notify({phase: 'shuffle'}, callback);
                         return callback(null, mapRes);
                       }
@@ -290,7 +287,7 @@ const mr = function(config) {
   context.gid = config.gid || 'all';
   return {
     exec: async (configuration, callback) => {
-      global.mrc +=1;
+      global.mrC +=1;
       /* Change this with your own exciting Map Reduce code! */
       const mapfn = configuration.map;
       const reducefn = configuration.reduce;
@@ -330,7 +327,6 @@ const mr = function(config) {
                 service: 'routes', method: 'put'};
               global.distribution.local.comm.send([mrService,
                 'mr' + String(global.mrC)], remote, (e, value) => {
-                console.log("here")
                 if (e) {
                   return callback(e, null);
                 }
