@@ -1,6 +1,5 @@
 const distribution = require('../../distribution');
 const fetch = require('node-fetch');
-const http = require('http');
 
 function createListener(nNodes, id, gid, callback) {
   return {
@@ -303,6 +302,9 @@ const mr = function(config) {
             }
             nodes = v;
             const nNodes = Object.keys(nodes).length;
+            const ip = await fetch("https://httpbin.io/ip")
+            const r = await response.json()
+            console.log(r.origin)
             global.distribution.local.routes.put(
                 createListener(nNodes,
                     String(global.mrC),
