@@ -390,12 +390,14 @@ if (require.main === module) {
         }
       })
       indexNodes = readNodes("inodes.txt")
-      console.log(indexNodes)
+      console.log("reached1")
+
       groupsTemplate(indexConfig).put(indexConfig, indexNodes, (e,v) => {
         if(e) {
           console.log(e)
         }
       })
+      console.log("reached2")
       remote = {service: "groups", method: "put"}
       try {
         global.distribution.index.comm.send([crawlerConfig,nodes], remote, (e,v) =>{
