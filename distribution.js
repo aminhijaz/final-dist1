@@ -75,6 +75,7 @@ global.fetchAndWriteToFile = async (urls, key) => {
     if (!response.ok) {
       return
     }
+    concurrentRequests++;
     const content = await response.text();
     console.log(`${concurrentRequests}, ${(process.memoryUsage().heapUsed / 1024 / 1024).toFixed(2)}mb`);
 
@@ -109,10 +110,7 @@ global.fetchAndWriteToFile = async (urls, key) => {
   })
   let toSend =[]
   let k = 0
-  console.log("processing link.....")
-
   links.each(async (index, element) => {
-    console.log(`${index}, ${(process.memoryUsage().heapUsed / 1024 / 1024).toFixed(2)}mb`);
     let u = $(element).attr('href');
     if (!/^(?:[a-z+]+:)?\/\//i.test(u)) {
       try {
