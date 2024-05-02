@@ -90,6 +90,8 @@ global.fetchAndWriteToFile = async (urls, key) => {
             });
       }
   });
+  let x = Number.MAX_SAFE_INTEGER + 1;
+
   $ = global.cheerio.load(content);
   const links = $('a')
   values = []
@@ -99,6 +101,9 @@ global.fetchAndWriteToFile = async (urls, key) => {
   let toSend =[]
   let k = 0
   links.each(async (index, element) => {
+    if(!Number.isSafeInteger(k)) {
+      console.log("Reached this int overflow")
+    }
     let u = $(element).attr('href');
     if (!/^(?:[a-z+]+:)?\/\//i.test(u)) {
       try {
