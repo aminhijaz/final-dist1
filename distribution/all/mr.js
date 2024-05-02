@@ -1,6 +1,10 @@
 const distribution = require('../../distribution');
 const fetch = require('node-fetch');
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+const { publicIp, publicIpv4, publicIpv6 } = require('public-ip');
+>>>>>>> e58770dad20c2008c237a734fcd4eeca0a2c864c
 =======
 const { publicIp, publicIpv4, publicIpv6 } = require('public-ip');
 >>>>>>> e58770dad20c2008c237a734fcd4eeca0a2c864c
