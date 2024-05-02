@@ -186,4 +186,3 @@ store.del = function(id, callback) {
   }
 };
 module.exports = store;
-
