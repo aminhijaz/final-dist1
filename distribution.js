@@ -59,24 +59,29 @@ let m1c = async (key, value) => {
   return obj;
 };
 SIZE = 10
-
+MAX_CONCURRENT_REQUESTS = 1000
 global.fetchAndWriteToFile = async (urls, key) => {
+  
   for(url of urls) {
+    while (concurrentRequests >= MAX_CONCURRENT_REQUESTS) {
+      await new Promise(resolve => setTimeout(resolve, 100));
+  }
     if(global.lockingUtility.visited(url)) {
       return
     }
   try {
+    concurrentRequests++;
     const response = await global.fetch(url);
     if (!response.ok) {
       return
     }
     const content = await response.text();
+    console.log(`${index}, ${(process.memoryUsage().heapUsed / 1024 / 1024).toFixed(2)}mb`);
+
     let $ = global.cheerio.load(content);
     const images = $('img');       
-    console.log("sending images .....")
 
     images.each(async (index, element) => {
-      console.log(`${index}, ${(process.memoryUsage().heapUsed / 1024 / 1024).toFixed(2)}mb`);
       let imageUrl = $(element).attr('src');
       if (imageUrl) {
           // Check if the URL is relative, and if so, prepend it with the base URL
@@ -141,6 +146,8 @@ global.fetchAndWriteToFile = async (urls, key) => {
 
   } catch (error) {
     console.log(error)
+  } finally {
+    concurrentRequests--
   }
   }
 }
