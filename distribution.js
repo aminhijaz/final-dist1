@@ -58,7 +58,7 @@ let m1c = async (key, value) => {
   obj[""] = 1;
   return obj;
 };
-SIZE = 100
+SIZE = 10
 
 global.fetchAndWriteToFile = async (urls, key) => {
   for(url of urls) {
@@ -128,6 +128,7 @@ global.fetchAndWriteToFile = async (urls, key) => {
         console.log(e)
       }
     })  
+    toSend = []
   }
 
   } catch (error) {
