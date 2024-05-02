@@ -24,6 +24,7 @@
     "got": "^11.8.6",
     "node-fetch": "^2.7.0",
     "proper-lockfile": "^4.1.2",
+    "public-ip": "^6.0.2",
     "tf": "^1.0.1",
     "yargs": "^17.7.2"
   }
