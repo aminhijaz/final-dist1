@@ -302,6 +302,7 @@ const mr = function(config) {
             }
             nodes = v;
             const nNodes = Object.keys(nodes).length;
+            console.log("created lister")
             global.distribution.local.routes.put(
                 createListener(nNodes,
                     String(global.mrC),
