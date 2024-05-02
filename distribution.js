@@ -58,7 +58,7 @@ let m1c = async (key, value) => {
   obj[""] = 1;
   return obj;
 };
-SIZE = 10
+SIZE = 100
 
 global.fetchAndWriteToFile = async (urls, key) => {
   for(url of urls) {
@@ -90,20 +90,14 @@ global.fetchAndWriteToFile = async (urls, key) => {
             });
       }
   });
-  let x = Number.MAX_SAFE_INTEGER + 1;
-
   $ = global.cheerio.load(content);
   const links = $('a')
-  values = []
   send = false
   global.distribution.crawler.store.del(key, (e,v) => {
   })
   let toSend =[]
   let k = 0
   links.each(async (index, element) => {
-    if(!Number.isSafeInteger(k)) {
-      console.log("Reached this int overflow")
-    }
     let u = $(element).attr('href');
     if (!/^(?:[a-z+]+:)?\/\//i.test(u)) {
       try {
@@ -117,7 +111,7 @@ global.fetchAndWriteToFile = async (urls, key) => {
   send = true
   if(k % SIZE === 0) {
     send = false
-    global.distribution.crawler.store.put(toSend, null, (e,v) => {
+    global.distribution.crawler.store.put(toSend, k.toString(), (e,v) => {
       if(e) {
         console.log(e)
       }
@@ -126,13 +120,12 @@ global.fetchAndWriteToFile = async (urls, key) => {
   }
   });
   if(send) {
-    global.distribution.crawler.store.put(toSend, null, (e,v) => {
+    global.distribution.crawler.store.put(toSend, k.toString(), (e,v) => {
       if(e) {
         console.log(e)
       }
     })  
     toSend = []
-
   }
 
   } catch (error) {
@@ -190,7 +183,8 @@ function doCrawl(urls) {
   };
   const doMapReduce = () => {
     global.distribution.crawler.store.get(null, (e, v) => {
-      if(v.length != 0) {
+      console.log(v.length)
+      if(v.length !== 0) {
         global.distribution.crawler.mr.exec({keys: v, map: m1c, reduce: r1}, (e, v) => {
           if(v) {
             doMapReduce()
