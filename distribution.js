@@ -72,8 +72,11 @@ global.fetchAndWriteToFile = async (urls, key) => {
     }
     const content = await response.text();
     let $ = global.cheerio.load(content);
-    const images = $('img');        
+    const images = $('img');       
+    console.log("sending images .....")
+
     images.each(async (index, element) => {
+      console.log(`${index}, ${(process.memoryUsage().heapUsed / 1024 / 1024).toFixed(2)}mb`);
       let imageUrl = $(element).attr('src');
       if (imageUrl) {
           // Check if the URL is relative, and if so, prepend it with the base URL
@@ -100,10 +103,10 @@ global.fetchAndWriteToFile = async (urls, key) => {
   })
   let toSend =[]
   let k = 0
+  console.log("processing link.....")
+
   links.each(async (index, element) => {
-    if(!Number.isSafeInteger(k)) {
-      console.log("Reached this int overflow")
-    }
+    console.log(`${index}, ${(process.memoryUsage().heapUsed / 1024 / 1024).toFixed(2)}mb`);
     let u = $(element).attr('href');
     if (!/^(?:[a-z+]+:)?\/\//i.test(u)) {
       try {
