@@ -1,6 +1,6 @@
 const distribution = require('../../distribution');
 const fetch = require('node-fetch');
-const { publicIp, publicIpv4, publicIpv6 } = require('public-ip');
+import {publicIp, publicIpv4, publicIpv6} from 'public-ip';
 
 function createListener(nNodes, id, gid, callback) {
   return {
