@@ -382,9 +382,11 @@ if (require.main === module) {
   if(args.crawler) {
     global.nodeConfig.onStart =() => {
       nodes = writeToOrAppendFileSync("cnodes.txt", `${global.nodeConfig.ip}:${global.nodeConfig.port}`)
+      console.log(nodes)
       groupsTemplate(crawlerConfig).put(crawlerConfig, nodes, (e,v) => {
       })
       indexNodes = readNodes("inodes.txt")
+      console.log(indexNodes)
       groupsTemplate(indexConfig).put(indexConfig, indexNodes, (e,v) => {
       })
       remote = {service: "groups", method: "put"}
