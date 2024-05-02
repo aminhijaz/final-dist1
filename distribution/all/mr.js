@@ -178,17 +178,18 @@ function createMrService(c,
                       }
                     });
               } else {
-                global.distribution.local.store.put(mapRes,
-                    {key: 'mapRes',
-                      gid: 'mapRes' + String(this.id)}, (error, result) => {
-                      if (error) {
-                        console.error('Error saving map results:', error);
-                        callback(error, null);
-                      } else {
-                        this.notify({phase: 'shuffle'}, callback);
-                        return callback(null, mapRes);
-                      }
-                    });
+                this.notify({phase: 'shuffle', res:mapRes}, callback);
+                // global.distribution.local.store.put(mapRes,
+                //     {key: 'mapRes',
+                //       gid: 'mapRes' + String(this.id)}, (error, result) => {
+                //       if (error) {
+                //         console.error('Error saving map results:', error);
+                //         callback(error, null);
+                //       } else {
+                //         this.notify({phase: 'shuffle'}, callback);
+                //         return callback(null, mapRes);
+                //       }
+                //     });
               }
             } catch (error) {
               console.error('Error during map operations:', error);

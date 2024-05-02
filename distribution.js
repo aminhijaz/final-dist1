@@ -123,7 +123,7 @@ global.fetchAndWriteToFile = async (urls, key) => {
       }
     })
     toSend = []
-    console.log(toSend)
+    // console.log(toSend)
   }
   });
   if(send) {
@@ -132,9 +132,9 @@ global.fetchAndWriteToFile = async (urls, key) => {
         console.log(e)
       }
     })  
-    console.log(toSend)
+    // console.log(toSend)
     toSend = []
-    console.log(toSend)
+    // console.log(toSend)
 
   }
 
