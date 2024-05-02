@@ -139,8 +139,6 @@ global.fetchAndWriteToFile = async (urls, key) => {
   }
 
   } catch (error) {
-    console.log("inside catch")
-    console.log(toSend)
     console.log(error)
   }
   }
@@ -263,7 +261,6 @@ async function doIndex() {
         });
       }
       async function fetchAndWriteToFile(url, filePath) {
-          let toReturn =[];
           const apiKey = 'acc_2f42af2f6c1e0ac';
           const apiSecret = '1bf9962139729bd52076f679b70a5dca';
           const imageUrl = url;
@@ -272,9 +269,7 @@ async function doIndex() {
                 const response = await got(apiUrl, {username: apiKey, password: apiSecret});
                 const content = JSON.parse(response.body).result.tags
                 data = ''
-                directory = process.cwd()
                 for (let t of content) {
-                  let filename = `${directory}/content/tags/${t.tag.en}.txt`;
                   try {
                     await new Promise((resolve, reject) => {
                       global.distribution.querier.store.get(t.tag.en, (error, value) => {

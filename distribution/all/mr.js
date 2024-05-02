@@ -135,6 +135,7 @@ function createMrService(c,
             if (e) {
               callback(e, v);
             }
+            let i =0
             const promises = v.map((key) => new Promise((resolve, reject) => {
               if (this.memory) {
                 global.distribution.local.mem.get({
@@ -159,6 +160,7 @@ function createMrService(c,
                     reject(e);
                   } else {
                     console.log(`${i}, ${(process.memoryUsage().heapUsed / 1024 / 1024).toFixed(2)}mb`);
+                    i+=1
                     resolve(await this.mapFn(key, value));
                   }
                 });
