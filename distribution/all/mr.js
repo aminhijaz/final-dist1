@@ -313,7 +313,7 @@ const mr = function(config) {
                 });
             for (key of Object.keys(v)) {
               const node = v[key];
-              console.log(mrService)
+              console.log("mrService")
               console.log(global.nodeConfig)
               let mrService = createMrService(global.nodeConfig,
                   node,
