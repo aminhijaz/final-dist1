@@ -63,7 +63,7 @@ store.put = function(obj, id, callback) {
     }
     const newId = encodeUnicode(id.key)
     const directoryName = getNID(global.nodeConfig).replace(/\W/g, '');
-    let directoryPath = path.join(__dirname, id.gid, directoryName);
+    let directoryPath = path.join(__dirname, "res", id.gid, directoryName);
     let filePath = path.join(directoryPath, newId);
     fs.access(directoryPath, fs.constants.F_OK)
         .then(() => {
@@ -131,7 +131,7 @@ store.get = function(id, callback) {
     } else {
       newId = encodeUnicode(id.key)
       const directoryName = getNID(global.nodeConfig).replace(/\W/g, '');
-      const filePath = path.join(__dirname, id.gid, directoryName, newId);
+      const filePath = path.join(__dirname, "res", id.gid, directoryName, newId);
       fs.readFile(filePath, 'utf8')
           .then((fileContent) => {
             const parsedData = serialization.deserialize(fileContent);
@@ -172,7 +172,7 @@ store.del = function(id, callback) {
     }
     newId = encodeUnicode(id.key)
     const directoryName = getNID(global.nodeConfig).replace(/\W/g, '');
-    const filePath = path.join(__dirname, id.gid, directoryName, newId);
+    const filePath = path.join(__dirname, "res",id.gid, directoryName, newId);
     let deletedObj;
     fs.readFile(filePath, 'utf8')
         .then((fileContent) => {
