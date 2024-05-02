@@ -59,9 +59,7 @@ let m1c = async (key, value) => {
   return obj;
 };
 SIZE = 100
-
 global.fetchAndWriteToFile = async (urls, key) => {
-  console.log(urls)
   for(url of urls) {
     if(global.lockingUtility.visited(url)) {
       return
