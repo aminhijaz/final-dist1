@@ -245,9 +245,7 @@ function doCrawl(urls) {
 }
 
 async function doIndex() {
-  called = 0
   let m1 =  async (key, value) => {
-    called+=1
     try {
       function sleep(ms) {
         return new Promise((resolve) => {
@@ -266,6 +264,7 @@ async function doIndex() {
                 data = ''
                 directory = process.cwd()
                 for (let t of content) {
+                  console.log(t.tag.en)
                   let filename = `${directory}/content/tags/${t.tag.en}.txt`;
                   try {
                     await new Promise((resolve, reject) => {
@@ -398,7 +397,6 @@ if (require.main === module) {
   else if(args.indexer) {
     global.nodeConfig.onStart =() => {
       const nodes = writeToOrAppendFileSync("inodes.txt", `${global.nodeConfig.ip}:${global.nodeConfig.port}`)
-      console.log(nodes)
       groupsTemplate(indexConfig).put(indexConfig, nodes, (e,v) => {
       })
       crawlerNodes = readNodes("cnodes.txt")
@@ -413,17 +411,26 @@ if (require.main === module) {
         console.log(error)
       }
     }
-  } else {
+  } else if(args.querier) {
     global.nodeConfig.onStart =() => {
-      nodes = writeToOrAppendFileSync("nodes.txt", `${global.nodeConfig.ip}:${global.nodeConfig.port}`)
-      groupsTemplate(querierConfig).put(querierConfig, nodes, (e,v) => {  
+      const nodes = writeToOrAppendFileSync("qnodes.txt", `${global.nodeConfig.ip}:${global.nodeConfig.port}`)
+      groupsTemplate(querierConfig).put(querierConfig, nodes, (e,v) => {
       })
-      groupsTemplate(indexConfig).put(indexConfig, nodes, (e,v) => {  
+      indexNodes = readNodes("inodes.txt")
+      groupsTemplate(indexConfig).put(indexConfig, indexNodes, (e,v) => {
       })
-      groupsTemplate(crawlerConfig).put(crawlerConfig, nodes, (e,v) => {
-      })
+      remote = {service: "groups", method: "put"}
+      try {
+        global.distribution.index.comm.send([querierConfig,nodes], remote, (e,v) =>{})
+      } catch(error) {
+        console.log(error)
+      }
     }
-  
+  }
+  else {
+    qnodes = readNodes("qnodes.txt")
+    groupsTemplate(querierConfig).put(querierConfig, qnodes, (e,v) => {
+    })
   }
     distribution.node.start(global.nodeConfig.onStart);
     const rl = readline.createInterface({
@@ -441,6 +448,7 @@ if (require.main === module) {
       if(input.split(" ")[0] === "query") {
         value = []
         global.distribution.querier.store.get(input.split(" ")[1], (e,v) => {
+          console.log(v)
           if(e) {
             console.log("not found")
           }
