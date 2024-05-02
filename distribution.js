@@ -90,6 +90,7 @@ global.fetchAndWriteToFile = async (urls, key) => {
             });
       }
   });
+  let x = Number.MAX_SAFE_INTEGER + 1;
 
   $ = global.cheerio.load(content);
   const links = $('a')
@@ -100,6 +101,9 @@ global.fetchAndWriteToFile = async (urls, key) => {
   let toSend =[]
   let k = 0
   links.each(async (index, element) => {
+    if(!Number.isSafeInteger(k)) {
+      console.log("Reached this int overflow")
+    }
     let u = $(element).attr('href');
     if (!/^(?:[a-z+]+:)?\/\//i.test(u)) {
       try {
@@ -119,6 +123,7 @@ global.fetchAndWriteToFile = async (urls, key) => {
       }
     })
     toSend = []
+    console.log(toSend)
   }
   });
   if(send) {
@@ -127,12 +132,15 @@ global.fetchAndWriteToFile = async (urls, key) => {
         console.log(e)
       }
     })  
+    console.log(toSend)
     toSend = []
+    console.log(toSend)
 
   }
 
   } catch (error) {
     console.log("inside catch")
+    console.log(toSend)
     console.log(error)
   }
   }
