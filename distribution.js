@@ -186,14 +186,18 @@ function doCrawl(urls) {
   };
   const doMapReduce = () => {
     global.distribution.crawler.store.get(null, (e, v) => {
-      global.distribution.crawler.mr.exec({keys: v, map: m1c, reduce: r1}, (e, v) => {
-        if(v) {
-          doMapReduce()
-        }
-        if(e) {
-          console.log(e)
-        }
-      });
+      if(v.length != 0) {
+        global.distribution.crawler.mr.exec({keys: v, map: m1c, reduce: r1}, (e, v) => {
+          if(v) {
+            doMapReduce()
+          }
+          if(e) {
+            console.log(e)
+          }
+        });
+      } else {
+        console.log("done crawling")
+      }
     });
   };
   async function processFileLineByLine(filename) {
@@ -322,8 +326,26 @@ async function doIndex() {
   };
   await doMapReduce()
 }
-const nodes = {}
+function readNodes(filename) {
+  const nodes = {}
+  try {
+    const fileContent = fs.readFileSync(filename, 'utf8');
+    const lines = fileContent.split('\n');
+    for(line of lines) {
+      if (line.trim() === '') {
+        continue;
+    }
+      splitted = line.split(":")
+      node = {ip: splitted[0], port: splitted[1]}
+      nodes[id.getSID(node)] = node
+    }
+    return nodes 
+  } catch(err) {
+    console.error("Error:", err);
+  }
+}
 function writeToOrAppendFileSync(filename, content) {
+  const nodes = {}
   try {
       const fileContent = fs.readFileSync(filename, 'utf8');
       const lines = fileContent.split('\n');
@@ -344,6 +366,7 @@ function writeToOrAppendFileSync(filename, content) {
       nodes[id.getSID(node)] = node
       fs.appendFileSync(filename, content + '\n');
       console.log("Content appended to the file successfully.");
+      return nodes
   } catch (err) {
       console.error("Error:", err);
   }
@@ -353,17 +376,54 @@ function writeToOrAppendFileSync(filename, content) {
 
 /* The following code is run when distribution.js is run directly */
 if (require.main === module) {
-  global.nodeConfig.onStart =() => {
-    writeToOrAppendFileSync("nodes.txt", `${global.nodeConfig.ip}:${global.nodeConfig.port}`)
-    const querierConfig = {gid: 'querier', hash: global.id.consistentHash};
-    const crawlerConfig = {gid: 'crawler', hash: global.id.consistentHash};
-    const indexConfig = {gid: 'index', hash: global.id.consistentHash};
-    groupsTemplate(querierConfig).put(querierConfig, nodes, (e,v) => {  
-    })
-    groupsTemplate(indexConfig).put(indexConfig, nodes, (e,v) => {  
-    })
-    groupsTemplate(crawlerConfig).put(crawlerConfig, nodes, (e,v) => {
-    })
+  const querierConfig = {gid: 'querier', hash: global.id.consistentHash};
+  const crawlerConfig = {gid: 'crawler', hash: global.id.consistentHash};
+  const indexConfig = {gid: 'index', hash: global.id.consistentHash};
+  if(args.crawler) {
+    global.nodeConfig.onStart =() => {
+      nodes = writeToOrAppendFileSync("cnodes.txt", `${global.nodeConfig.ip}:${global.nodeConfig.port}`)
+      groupsTemplate(crawlerConfig).put(crawlerConfig, nodes, (e,v) => {
+      })
+      indexNodes = readNodes("inodes.txt")
+      groupsTemplate(indexConfig).put(indexConfig, indexNodes, (e,v) => {
+      })
+      remote = {service: "groups", method: "put"}
+      try {
+        global.distribution.index.comm.send([crawlerConfig,nodes], remote, (e,v) =>{})
+      } catch(error) {
+        console.log(error)
+      }
+    }
+  }
+  else if(args.indexer) {
+    global.nodeConfig.onStart =() => {
+      const nodes = writeToOrAppendFileSync("inodes.txt", `${global.nodeConfig.ip}:${global.nodeConfig.port}`)
+      console.log(nodes)
+      groupsTemplate(indexConfig).put(indexConfig, nodes, (e,v) => {
+      })
+      crawlerNodes = readNodes("cnodes.txt")
+      groupsTemplate(crawlerConfig).put(crawlerConfig, crawlerNodes, (e,v) => {
+      })
+      try {
+        remote = {service: "groups", method: "put"}
+        console.log("reached")
+        global.distribution.crawler.comm.send([indexConfig,nodes], remote, (e,v) =>{})
+        console.log(nodes)
+      } catch(error) {
+        console.log(error)
+      }
+    }
+  } else {
+    global.nodeConfig.onStart =() => {
+      nodes = writeToOrAppendFileSync("nodes.txt", `${global.nodeConfig.ip}:${global.nodeConfig.port}`)
+      groupsTemplate(querierConfig).put(querierConfig, nodes, (e,v) => {  
+      })
+      groupsTemplate(indexConfig).put(indexConfig, nodes, (e,v) => {  
+      })
+      groupsTemplate(crawlerConfig).put(crawlerConfig, nodes, (e,v) => {
+      })
+    }
+  
   }
     distribution.node.start(global.nodeConfig.onStart);
     const rl = readline.createInterface({

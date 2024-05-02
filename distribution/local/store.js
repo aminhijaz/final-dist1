@@ -94,6 +94,7 @@ store.get = function(id, callback) {
           }));
         })
         .catch((err) => {
+          console.log(err)
           callback(new Error('get error'), null);
         });
   }
@@ -108,6 +109,7 @@ store.get = function(id, callback) {
           callback(null, parsedData);
         })
         .catch((err) => {
+          console.log(err)
           callback(new Error('get error'), null);
         });
   } else if (id !== null) {
@@ -134,6 +136,7 @@ store.get = function(id, callback) {
             callback(null, parsedData);
           })
           .catch((err) => {
+            console.log(err)
             callback(new Error('get error'), null);
           });
     }
