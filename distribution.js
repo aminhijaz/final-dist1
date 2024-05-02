@@ -423,8 +423,12 @@ if (require.main === module) {
       try {
         remote = {service: "groups", method: "put"}
         console.log("reached")
-        global.distribution.crawler.comm.send([indexConfig,nodes], remote, (e,v) =>{})
-        console.log(nodes)
+        global.distribution.crawler.comm.send([indexConfig,nodes], remote, (e,v) =>{
+          if(e) {
+            console.log(e)
+
+          }
+        })
       } catch(error) {
         console.log(error)
       }
