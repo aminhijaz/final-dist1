@@ -89,8 +89,6 @@ global.fetchAndWriteToFile = async (urls, key) => {
                 return
               }
           }
-            distribution.index.store.put(imageUrl, null,  (e, v) => {
-            });
       }
   });
   let x = Number.MAX_SAFE_INTEGER + 1;
