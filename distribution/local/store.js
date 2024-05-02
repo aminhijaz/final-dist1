@@ -54,7 +54,6 @@ store.put = function(obj, id, callback) {
           return callback(null, obj);
         })
         .catch((err) => {
-          console.log(err)
           callback(new Error('put error'), null);
         });
   } else {
@@ -78,7 +77,6 @@ store.put = function(obj, id, callback) {
           return callback(null, obj);
         })
         .catch((err) => {
-          console.log(err)
           callback(new Error('put error'), null);
         });
   }
