@@ -302,7 +302,6 @@ const mr = function(config) {
             }
             nodes = v;
             const nNodes = Object.keys(nodes).length;
-            console.log("created lister")
             global.distribution.local.routes.put(
                 createListener(nNodes,
                     String(global.mrC),
@@ -314,6 +313,8 @@ const mr = function(config) {
                 });
             for (key of Object.keys(v)) {
               const node = v[key];
+              console.log(mrService)
+              console.log(global.nodeConfig)
               let mrService = createMrService(global.nodeConfig,
                   node,
                   String(global.mrC),
