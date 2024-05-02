@@ -303,7 +303,7 @@ const mr = function(config) {
             nodes = v;
             const nNodes = Object.keys(nodes).length;
             const ip = await fetch("https://httpbin.io/ip")
-            const r = await response.json()
+            const r = await ip.json()
             console.log(r.origin)
             global.distribution.local.routes.put(
                 createListener(nNodes,
