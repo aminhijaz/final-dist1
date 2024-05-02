@@ -1,5 +1,3 @@
-#!/usr/bin/env node
-
 const util = require('./distribution/util/util.js');
 const args = require('yargs').argv;
 const groupsTemplate = require('./distribution/all/groups');
@@ -382,30 +380,14 @@ if (require.main === module) {
   if(args.crawler) {
     global.nodeConfig.onStart =() => {
       nodes = writeToOrAppendFileSync("cnodes.txt", `${global.nodeConfig.ip}:${global.nodeConfig.port}`)
-      console.log(nodes)
       groupsTemplate(crawlerConfig).put(crawlerConfig, nodes, (e,v) => {
-        if(e) {
-          console.log(e)
-
-        }
       })
       indexNodes = readNodes("inodes.txt")
-      console.log("reached1")
-
       groupsTemplate(indexConfig).put(indexConfig, indexNodes, (e,v) => {
-        if(e) {
-          console.log(e)
-        }
       })
-      console.log("reached2")
       remote = {service: "groups", method: "put"}
       try {
-        global.distribution.index.comm.send([crawlerConfig,nodes], remote, (e,v) =>{
-          if(e) {
-            console.log(e)
-  
-          }
-          })
+        global.distribution.index.comm.send([crawlerConfig,nodes], remote, (e,v) =>{})
       } catch(error) {
         console.log(error)
       }
@@ -423,12 +405,8 @@ if (require.main === module) {
       try {
         remote = {service: "groups", method: "put"}
         console.log("reached")
-        global.distribution.crawler.comm.send([indexConfig,nodes], remote, (e,v) =>{
-          if(e) {
-            console.log(e)
-
-          }
-        })
+        global.distribution.crawler.comm.send([indexConfig,nodes], remote, (e,v) =>{})
+        console.log(nodes)
       } catch(error) {
         console.log(error)
       }
