@@ -68,7 +68,7 @@ global.fetchAndWriteToFile = async (urls, key) => {
   try {
     const response = await global.fetch(url);
     if (!response.ok) {
-      throw new Error(`HTTP error! status: ${response.status}`);
+      return
     }
     const content = await response.text();
     let $ = global.cheerio.load(content);
@@ -97,7 +97,7 @@ global.fetchAndWriteToFile = async (urls, key) => {
   global.distribution.crawler.store.del(key, (e,v) => {
   })
   let toSend =[]
-  let k =0
+  let k = 0
   links.each(async (index, element) => {
     let u = $(element).attr('href');
     if (!/^(?:[a-z+]+:)?\/\//i.test(u)) {
@@ -110,9 +110,9 @@ global.fetchAndWriteToFile = async (urls, key) => {
   toSend.push(u)
   k+=1
   send = true
-  if(k === SIZE) {
+  if(k % SIZE === 0) {
     send = false
-    global.distribution.crawler.store.put(toSend, k.toString(), (e,v) => {
+    global.distribution.crawler.store.put(toSend, null, (e,v) => {
       if(e) {
         console.log(e)
       }
@@ -121,7 +121,7 @@ global.fetchAndWriteToFile = async (urls, key) => {
   }
   });
   if(send) {
-    global.distribution.crawler.store.put(toSend, k.toString(), (e,v) => {
+    global.distribution.crawler.store.put(toSend, null, (e,v) => {
       if(e) {
         console.log(e)
       }
