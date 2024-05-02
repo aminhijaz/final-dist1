@@ -111,16 +111,10 @@ global.fetchAndWriteToFile = async (urls, key) => {
   send = true
   if(k % SIZE === 0) {
     send = false
-    await new Promise((resolve, reject) => {
-      global.distribution.crawler.store.put(toSend, k.toString(), (e,v) => {
-        if(v) {
-          resolve(v)
-        }
-        if(e) {
-          reject(e)
-        }
-      })
-  
+    global.distribution.crawler.store.put(toSend, k.toString(), (e,v) => {
+      if(e) {
+        console.log(e)
+      }
     })
     toSend = []
   }
