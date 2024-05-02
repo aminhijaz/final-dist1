@@ -122,9 +122,7 @@ global.fetchAndWriteToFile = async (urls, key) => {
         console.log(e)
       }
     })
-    console.log(toSend)
     toSend = []
-    console.log(toSend)
   }
   });
   if(send) {
@@ -133,15 +131,12 @@ global.fetchAndWriteToFile = async (urls, key) => {
         console.log(e)
       }
     })  
-    console.log(toSend)
     toSend = []
-    console.log(toSend)
 
   }
 
   } catch (error) {
     console.log("inside catch")
-    console.log(toSend)
     console.log(error)
   }
   }
