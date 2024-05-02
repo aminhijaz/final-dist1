@@ -16,6 +16,7 @@ function createListener(nNodes, id, gid, callback) {
             if (Object.keys(e).length !== 0) {
               return this.callback(e, null);
             }
+            return this.callback(null, v);
           });
         }
       }

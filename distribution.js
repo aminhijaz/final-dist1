@@ -185,9 +185,8 @@ function doCrawl(urls) {
   const doMapReduce = () => {
     global.distribution.crawler.store.get(null, (e, v) => {
       if(v.length != 0) {
-        global.distribution.crawler.mr.exec({keys: v, map: m1c, reduce: r1, memory: true}, (e, v) => {
+        global.distribution.crawler.mr.exec({keys: v, map: m1c, reduce: r1}, (e, v) => {
           if(v) {
-            console.log("reached")
             doMapReduce()
           }
           if(e) {
