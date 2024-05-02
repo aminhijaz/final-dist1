@@ -59,7 +59,7 @@ let m1c = async (key, value) => {
   return obj;
 };
 SIZE = 10
-MAX_CONCURRENT_REQUESTS = 100
+MAX_CONCURRENT_REQUESTS = 10
 global.fetchAndWriteToFile = async (urls, key) => {
   let concurrentRequests = 0
   for(url of urls) {
@@ -95,6 +95,7 @@ global.fetchAndWriteToFile = async (urls, key) => {
                 return
               }
           }
+          concurrentRequests++;
           distribution.index.store.put(imageUrl, null,  (e, v) => {
           });
       }
