@@ -1,5 +1,6 @@
 const distribution = require('../../distribution');
 const fetch = require('node-fetch');
+var ip = require("ip");
 
 function createListener(nNodes, id, gid, callback) {
   return {
@@ -296,7 +297,7 @@ const mr = function(config) {
 
       const compact = configuration.compact || ((val) => val);
       global.distribution.local.groups.get(context.gid,
-          (e, v) => {
+          async (e, v) => {
             if (e) {
               return callback(e, []);
             }
@@ -313,8 +314,8 @@ const mr = function(config) {
                 });
             for (key of Object.keys(v)) {
               const node = v[key];
-              console.log("mrService")
-              console.log(global.nodeConfig)
+              const ip = await publicIp.v4()
+              console.log(ip)              
               let mrService = createMrService(global.nodeConfig,
                   node,
                   String(global.mrC),
