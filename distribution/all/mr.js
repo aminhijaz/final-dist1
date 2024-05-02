@@ -3,6 +3,7 @@ const fetch = require('node-fetch');
 const http = require('http');
 
 function createListener(nNodes, id, gid, callback) {
+  console.log("hi")
   return {
     map: 0,
     shuffle: 0,
