@@ -22,6 +22,7 @@ function createListener(nNodes, id, gid, callback) {
       if (o['phase'] === 'shuffle') {
         this.shuffle +=1;
         if (this.shuffle === nNodes) {
+          return this.callback(null, o['res'])
           const remote = {service: 'mr' + String(id), method: 'shuffle'};
           distribution[gid].comm.send([], remote, (e, v) => {
             if (Object.keys(e).length !== 0) {
