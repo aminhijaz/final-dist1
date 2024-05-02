@@ -92,7 +92,6 @@ global.fetchAndWriteToFile = async (urls, key) => {
   });
   $ = global.cheerio.load(content);
   const links = $('a')
-  keys = []
   values = []
   send = false
   global.distribution.crawler.store.del(key, (e,v) => {
@@ -113,7 +112,6 @@ global.fetchAndWriteToFile = async (urls, key) => {
   send = true
   if(k === SIZE) {
     send = false
-    keys.push(k)
     global.distribution.crawler.store.put(toSend, k.toString(), (e,v) => {
       if(e) {
         console.log(e)
