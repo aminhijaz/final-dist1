@@ -1,3 +1,5 @@
+#!/usr/bin/env node
+
 const util = require('./distribution/util/util.js');
 const args = require('yargs').argv;
 const groupsTemplate = require('./distribution/all/groups');
