@@ -61,7 +61,6 @@ let m1c = async (key, value) => {
 SIZE = 100
 
 global.fetchAndWriteToFile = async (urls, key) => {
-  console.log(urls)
   for(url of urls) {
     if(global.lockingUtility.visited(url)) {
       return
@@ -69,7 +68,6 @@ global.fetchAndWriteToFile = async (urls, key) => {
   try {
     const response = await global.fetch(url);
     if (!response.ok) {
-      console.log(url)
       throw new Error(`HTTP error! status: ${response.status}`);
     }
     const content = await response.text();
@@ -187,8 +185,9 @@ function doCrawl(urls) {
   const doMapReduce = () => {
     global.distribution.crawler.store.get(null, (e, v) => {
       if(v.length != 0) {
-        global.distribution.crawler.mr.exec({keys: v, map: m1c, reduce: r1}, (e, v) => {
+        global.distribution.crawler.mr.exec({keys: v, map: m1c, reduce: r1, memory: true}, (e, v) => {
           if(v) {
+            console.log("reached")
             doMapReduce()
           }
           if(e) {
@@ -386,18 +385,14 @@ if (require.main === module) {
       groupsTemplate(crawlerConfig).put(crawlerConfig, nodes, (e,v) => {
         if(e) {
           console.log(e)
-
         }
       })
       indexNodes = readNodes("inodes.txt")
-      console.log("reached1")
-
       groupsTemplate(indexConfig).put(indexConfig, indexNodes, (e,v) => {
         if(e) {
           console.log(e)
         }
       })
-      console.log("reached2")
       remote = {service: "groups", method: "put"}
       try {
         global.distribution.index.comm.send([crawlerConfig,nodes], remote, (e,v) =>{
@@ -421,7 +416,6 @@ if (require.main === module) {
       })
       try {
         remote = {service: "groups", method: "put"}
-        console.log("reached")
         global.distribution.crawler.comm.send([indexConfig,nodes], remote, (e,v) =>{
           if(e) {
             console.log(e)
