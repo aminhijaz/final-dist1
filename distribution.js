@@ -67,13 +67,14 @@ global.fetchAndWriteToFile = async (urls, key) => {
       while (concurrentRequests >= MAX_CONCURRENT_REQUESTS) {
           await new Promise(resolve => setTimeout(resolve, 1000));
       }
-  };    
+  };   
+  waitIfNeeded() 
   concurrentRequests++
     if(global.lockingUtility.visited(url)) {
+      concurrentRequests--
       return
     }
   try {
-    waitIfNeeded()
     const response = await global.fetch(url);
     if (!response.ok) {
       return
