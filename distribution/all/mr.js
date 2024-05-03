@@ -160,12 +160,15 @@ function createMrService(c,
                   if (e) {
                     reject(e);
                   } else {
+                    console.log("in Map")
+                    console.log(`${i}, ${(process.memoryUsage().heapUsed / 1024 / 1024).toFixed(2)}mb`);
                     while(i >= 100) {
                       console.log("waiting")
                       await new Promise(resolve => setTimeout(resolve, 100));
                     }
-                    resolve(await this.mapFn(key, value));
                     i+=1
+                    const val = await this.mapFn(key, value)
+                    resolve(val);
                   }
                 });
               }
