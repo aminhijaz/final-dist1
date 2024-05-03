@@ -65,8 +65,7 @@ global.fetchAndWriteToFile = async (urls, key) => {
   for (url of urls) {
     const waitIfNeeded = async () => {
       while (concurrentRequests >= MAX_CONCURRENT_REQUESTS) {
-        console.log("waiting in ")
-          await new Promise(resolve => setTimeout(resolve, 100));
+          await new Promise(resolve => setTimeout(resolve, 1000));
       }
   };    
   waitIfNeeded()
@@ -113,7 +112,7 @@ global.fetchAndWriteToFile = async (urls, key) => {
   })
   let toSend =[]
   let k = 0
-  links.each(async (index, element) => {
+  links.each((index, element) => {
     let u = $(element).attr('href');
     if (!/^(?:[a-z+]+:)?\/\//i.test(u)) {
       try {
