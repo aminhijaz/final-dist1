@@ -136,46 +136,57 @@ function createMrService(c,
               callback(e, v);
             }
             let i =0
-            const promises = v.map(async (key) => await new Promise((resolve, reject) => {
-              i+=1
-              if (this.memory) {
-                global.distribution.local.mem.get({
-                  key: key,
-                  gid:
-                  this.gid}, async (e, value) => {
-                  if (e) {
-                    reject(e);
-                  } else {
-                    let res = await this.mapFn(key, value);
-                    for (let i=0; i<this.count; i++) {
-                      res = this.mapFn(Object.keys(res)[0],
-                          Object.values(res)[0]);
-                    }
-                    resolve(res);
-                  }
-                });
-              } else {
-                global.distribution.local.store.get({key: key, gid:
-                  this.gid}, async (e, value) => {
-
-                  if (e) {
-                    reject(e);
-                  } else {
-                    console.log("in Map")
-                    console.log(`${i}, ${(process.memoryUsage().heapUsed / 1024 / 1024).toFixed(2)}mb`);
-                    while(i >= 10) {
-                      console.log("waiting")
-                      await new Promise(resolve => setTimeout(resolve, 100));
-                    }
-                    const val = await this.mapFn(key, value)
-                    resolve(val);
-                  }
-                });
+            const promises = v.map(async (key) => {
+              try {
+                let result;
+                i += 1;
+                if (this.memory) {
+                  result = await new Promise((resolve, reject) => {
+                    global.distribution.local.mem.get({ key: key, gid: this.gid }, async (e, value) => {
+                      if (e) {
+                        reject(e);
+                      } else {
+                        let res = await this.mapFn(key, value);
+                        for (let i = 0; i < this.count; i++) {
+                          res = this.mapFn(Object.keys(res)[0], Object.values(res)[0]);
+                        }
+                        resolve(res);
+                      }
+                    });
+                  });
+                } else {
+                  result = await new Promise((resolve, reject) => {
+                    global.distribution.local.store.get({ key: key, gid: this.gid }, async (e, value) => {
+                      if (e) {
+                        reject(e);
+                      } else {
+                        console.log("in Map");
+                        console.log(`${i}, ${(process.memoryUsage().heapUsed / 1024 / 1024).toFixed(2)}mb`);
+                        while (i >= 10) {
+                          console.log("waiting");
+                          await new Promise(resolve => setTimeout(resolve, 100));
+                        }
+                        const val = await this.mapFn(key, value);
+                        resolve(val);
+                      }
+                    });
+                  });
+                }
+                return result;
+              } finally {
+                console.log("reached finally");
+                i -= 1;
               }
-            }).finally(()=>{
-              console.log("reached finally")
-              i-=1
-            }));
+            });
+            
+            Promise.all(promises)
+              .then(results => {
+                // Handle results if needed
+              })
+              .catch(error => {
+                // Handle errors if needed
+              });
+            
             try {
               let mapRes = await Promise.all(promises);
               mapRes = this.compact(mapRes.flat());
