@@ -48,7 +48,7 @@ let r1 = (key, values) => {
   return obj;
 };
 let concurrentRequests = 0
-waiting = false
+let waiting = false
 let m1c = async (key, value) => {
   concurrentRequests+=1
   const waitIfNeeded = async () => {
