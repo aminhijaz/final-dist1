@@ -61,7 +61,6 @@ SIZE = 100
 MAX_CONCURRENT_REQUESTS = 100
 global.fetchAndWriteToFile = async (urls, key) => {
   for await (url of urls) {
-  waitIfNeeded() 
     if(global.lockingUtility.visited(url)) {
       return
     }
