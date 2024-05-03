@@ -161,6 +161,7 @@ function createMrService(c,
                     reject(e);
                   } else {
                     while(i >= 100) {
+                      console.log("waiting")
                       await new Promise(resolve => setTimeout(resolve, 100));
                     }
                     resolve(await this.mapFn(key, value));
