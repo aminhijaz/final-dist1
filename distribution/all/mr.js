@@ -136,11 +136,14 @@ function createMrService(c,
               callback(e, v);
             }
             
-            while(this.ci >= 10) {
-              console.log("waiting")
-              await new Promise(resolve => setTimeout(resolve, 100));
-            }
             const promises = v.map((key) => new Promise((resolve, reject) => {
+              const waitIfNeeded = async () => {
+                while (this.ci >= 10) {
+                    console.log("waiting");
+                    await new Promise(resolve => setTimeout(resolve, 100));
+                }
+            };    
+            waitIfNeeded()
               this.ci+=1
               if (this.memory) {
                 global.distribution.local.mem.get({
