@@ -47,10 +47,9 @@ let r1 = (key, values) => {
   obj[key] = values;
   return obj;
 };
-
-let m1c = async (key, value) => {  
+let m1c = (key, value) => {
   try {
-    await global.fetchAndWriteToFile(value, key);
+    global.fetchAndWriteToFile(value, key);
   } catch (err) {
     console.log(err);
   }
@@ -62,12 +61,12 @@ SIZE = 100
 MAX_CONCURRENT_REQUESTS = 100
 global.fetchAndWriteToFile = async (urls, key) => {
   let concurrentRequests = 0
+  const waitIfNeeded = async () => {
+    while (concurrentRequests >= MAX_CONCURRENT_REQUESTS) {
+        await new Promise(resolve => setTimeout(resolve, 100));
+    }
+};   
   for await (url of urls) {
-    const waitIfNeeded = async () => {
-      while (concurrentRequests >= MAX_CONCURRENT_REQUESTS) {
-          await new Promise(resolve => setTimeout(resolve, 100));
-      }
-  };   
   concurrentRequests++
   waitIfNeeded() 
 
