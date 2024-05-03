@@ -103,7 +103,6 @@ function createListener(nNodes, id, gid, callback) {
     },
   };
 }
-
 function createMrService(c,
     node,
     id,
@@ -124,6 +123,7 @@ function createMrService(c,
     count: count,
     c: c,
     obj: {},
+    ci: 0,
     notify: function(obj, callback) {
       const n = {node: this.c, service: 'listener' + this.id, method: 'listen'};
       global.distribution.local.comm.send([obj], n, (e, v) => {
@@ -135,13 +135,13 @@ function createMrService(c,
             if (e) {
               callback(e, v);
             }
-            let i =0
-            while(i >= 10) {
+            
+            while(this.ci >= 10) {
               console.log("waiting")
               await new Promise(resolve => setTimeout(resolve, 100));
             }
             const promises = v.map((key) => new Promise((resolve, reject) => {
-              i+=1
+              this.ci+=1
               if (this.memory) {
                 global.distribution.local.mem.get({
                   key: key,
@@ -174,14 +174,14 @@ function createMrService(c,
                       // Handle any errors that occurred during the await
                   } finally {
                     console.log("reached")
-                    i-=1
+                    this.ci-=1
                   }                  
                   }
                 });
               }
             }).finally(()=>{
               console.log("reached finally")
-              i-=1
+              this.ci-=1
             }));
             try {
               let mapRes = await Promise.all(promises);
