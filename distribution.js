@@ -71,7 +71,6 @@ global.fetchAndWriteToFile = async (urls, key) => {
   waitIfNeeded() 
   concurrentRequests++
     if(global.lockingUtility.visited(url)) {
-      concurrentRequests--
       return
     }
   try {
