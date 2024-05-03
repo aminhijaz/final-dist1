@@ -179,8 +179,6 @@ function createMrService(c,
                   }
                 });
               }
-            }).finally(()=>{
-              this.ci-=1
             }));
             try {
               let mapRes = await Promise.all(promises);
