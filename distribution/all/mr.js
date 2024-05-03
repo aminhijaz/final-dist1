@@ -137,6 +137,7 @@ function createMrService(c,
             }
             let i =0
             const promises = v.map((key) => new Promise((resolve, reject) => {
+              i+=1
               if (this.memory) {
                 global.distribution.local.mem.get({
                   key: key,
@@ -167,7 +168,6 @@ function createMrService(c,
                       await new Promise(resolve => setTimeout(resolve, 100));
                     }
                     const val = await this.mapFn(key, value)
-                    i+=1
                     resolve(val);
                   }
                 });
