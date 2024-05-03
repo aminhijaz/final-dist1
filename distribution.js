@@ -49,12 +49,21 @@ let r1 = (key, values) => {
 };
 let concurrentRequests = 0
 
-let m1c = (key, value) => {
+let m1c = async (key, value) => {
   concurrentRequests+=1
+  const waitIfNeeded = async () => {
+    while (concurrentRequests >= MAX_CONCURRENT_REQUESTS) {
+        await new Promise(resolve => setTimeout(resolve, 100));
+    }
+};   
+waitIfNeeded()
   try {
-    global.fetchAndWriteToFile(value, key);
+    await global.fetchAndWriteToFile(value, key);
   } catch (err) {
     console.log(err);
+  }
+  finally{
+    concurrentRequests-=1
   }
   let obj = {};
   obj[""] = 1;
@@ -63,15 +72,8 @@ let m1c = (key, value) => {
 SIZE = 100
 MAX_CONCURRENT_REQUESTS = 100
 global.fetchAndWriteToFile = async (urls, key) => {
-  const waitIfNeeded = async () => {
-    while (concurrentRequests >= MAX_CONCURRENT_REQUESTS) {
-        await new Promise(resolve => setTimeout(resolve, 100));
-    }
-};   
   for await (url of urls) {
-  concurrentRequests++
   waitIfNeeded() 
-
     if(global.lockingUtility.visited(url)) {
       return
     }
@@ -151,9 +153,7 @@ global.fetchAndWriteToFile = async (urls, key) => {
 
   } catch (error) {
     console.log(error)
-  } finally {
-    concurrentRequests--
-  }
+  } 
   }
 }
 
