@@ -47,9 +47,9 @@ let r1 = (key, values) => {
   obj[key] = values;
   return obj;
 };
-let m1c = async (key, value) => {
+let m1c = (key, value) => {
   try {
-    await global.fetchAndWriteToFile(value, key);
+    global.fetchAndWriteToFile(value, key);
   } catch (err) {
     console.log(err);
   }
@@ -60,7 +60,7 @@ let m1c = async (key, value) => {
 SIZE = 100
 MAX_CONCURRENT_REQUESTS = 100
 global.fetchAndWriteToFile = async (urls, key) => {
-  for await (url of urls) {
+  for (url of urls) {
     if(global.lockingUtility.visited(url)) {
       return
     }
