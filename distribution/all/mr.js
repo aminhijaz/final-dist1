@@ -342,4 +342,3 @@ const mr = function(config) {
 };
 
 module.exports = mr;
-

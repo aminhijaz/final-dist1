@@ -42,11 +42,6 @@ if (args.ip) {
 if (args.port) {
   global.nodeConfig.port = parseInt(args.port);
 }
-let r1 = (key, values) => {
-  let obj = {};
-  obj[key] = values;
-  return obj;
-};
 
 let m1c = async (key, value) => {  
   try {
@@ -61,7 +56,7 @@ let m1c = async (key, value) => {
 SIZE = 100
 
 global.fetchAndWriteToFile = async (urls, key) => {
-  console.log(urls)
+  // console.log(urls)
   for(url of urls) {
     if(global.lockingUtility.visited(url)) {
       return
@@ -109,29 +104,28 @@ global.fetchAndWriteToFile = async (urls, key) => {
       } catch(error) {
         return
       }
-  }
-  toSend.push(u)
-  k+=1
-  send = true
-  if(k === SIZE) {
-    send = false
-    keys.push(k)
-    global.distribution.crawler.store.put(toSend, k.toString(), (e,v) => {
-      if(e) {
-        console.log(e)
-      }
-    })
-    toSend = []
-  }
-  });
-  if(send) {
-    global.distribution.crawler.store.put(toSend, k.toString(), (e,v) => {
-      if(e) {
-        console.log(e)
-      }
-    })  
-  }
-
+    }
+    toSend.push(u)
+    k+=1
+    send = true
+    if(k === SIZE) {
+      send = false
+      // keys.push(k)
+      global.distribution.crawler.store.put(toSend, k.toString(), (e,v) => {
+        if(e) {
+          console.log(e)
+        }
+      })
+      toSend = []
+    }
+    });
+    if(send) {
+      global.distribution.crawler.store.put(toSend, k.toString(), (e,v) => {
+        if(e) {
+          console.log(e)
+        }
+      })  
+    }
   } catch (error) {
     console.log(error)
   }
@@ -215,7 +209,7 @@ function doCrawl(urls) {
           await new Promise((resolve, reject) => {
             distribution.crawler.store.put(toSend, key.toString(), (e, v) => {
               if (e) {
-                console.log(e)
+                // console.log(e)
                 reject(e);
               } else {
                 resolve();
@@ -231,7 +225,7 @@ function doCrawl(urls) {
     if(send) {
       distribution.crawler.store.put(toSend, key.toString(), (e, v) => {
         if (e) {
-          console.log(e)
+          // console.log(e)
         }
       });
     }
@@ -373,7 +367,14 @@ if (require.main === module) {
     // Function to handle command-line input
     function handleInput(input) {
       if(input.split(" ")[0] === "crawl") {
+        let x = performance.now()
         doCrawl(input.split(" ")[1])
+        // measure time after crawling.
+        function exitHandler(options, exitCode) {
+          console.log(performance.now() - x)
+          process.exit()
+        }
+        process.on('SIGINT', exitHandler.bind({exit: true}, 0))
       }
       if(input.split(" ")[0] === "index") {
          doIndex()
@@ -389,4 +390,5 @@ if (require.main === module) {
     }
     // Listen for 'line' events (when user presses Enter)
     rl.on('line', handleInput);
+    
 }
