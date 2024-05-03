@@ -47,27 +47,11 @@ let r1 = (key, values) => {
   obj[key] = values;
   return obj;
 };
-let waiting = false
 let m1c = async (key, value) => {
-  concurrentRequests+=1
-  const waitIfNeeded = async () => {
-    while (concurrentRequests >= MAX_CONCURRENT_REQUESTS) {
-      if(!waiting) {
-        console.log("waiting")
-      }
-      waiting= true
-        await new Promise(resolve => setTimeout(resolve, 100));
-    }
-    waitIfNeeded()
-    waiting = false
-};   
   try {
     await global.fetchAndWriteToFile(value, key);
   } catch (err) {
     console.log(err);
-  }
-  finally{
-    concurrentRequests-=1
   }
   let obj = {};
   obj[""] = 1;
@@ -87,7 +71,7 @@ global.fetchAndWriteToFile = async (urls, key) => {
       return
     }
     const content = await response.text();
-    console.log(`concurrent:${concurrentRequests}, ${(process.memoryUsage().heapUsed / 1024 / 1024).toFixed(2)}mb`);
+    console.log(`${(process.memoryUsage().heapUsed / 1024 / 1024).toFixed(2)}mb`);
 
     let $ = global.cheerio.load(content);
     const images = $('img');       
@@ -212,7 +196,7 @@ function doCrawl(urls) {
       if(v.length != 0) {
         global.distribution.crawler.mr.exec({keys: v, map: m1c, reduce: r1}, (e, v) => {
           if(v) {
-            setTimeout(doMapReduce(), 100)
+             setTimeout(doMapReduce(), 100)
           }
           if(e) {
             console.log(e)
