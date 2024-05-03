@@ -156,13 +156,20 @@ function createMrService(c,
               } else {
                 global.distribution.local.store.get({key: key, gid:
                   this.gid}, async (e, value) => {
+
                   if (e) {
                     reject(e);
                   } else {
+                    while(i >= 100) {
+                      await new Promise(resolve => setTimeout(resolve, 100));
+                    }
                     resolve(await this.mapFn(key, value));
+                    i+=1
                   }
                 });
               }
+            }).finally(() => {
+              i-=1
             }));
             try {
               let mapRes = await Promise.all(promises);
