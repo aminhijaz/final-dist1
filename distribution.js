@@ -65,6 +65,7 @@ global.fetchAndWriteToFile = async (urls, key) => {
   for (url of urls) {
     const waitIfNeeded = async () => {
       while (concurrentRequests >= MAX_CONCURRENT_REQUESTS) {
+        console.log("waiting in ")
           await new Promise(resolve => setTimeout(resolve, 100));
       }
   };    
