@@ -158,7 +158,6 @@ function createMrService(c,
                   if (e) {
                     reject(e);
                   } else {
-                    console.log(`${i}, ${(process.memoryUsage().heapUsed / 1024 / 1024).toFixed(2)}mb`);
                     resolve(await this.mapFn(key, value));
                   }
                 });
