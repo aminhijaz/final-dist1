@@ -48,15 +48,20 @@ let r1 = (key, values) => {
   return obj;
 };
 let concurrentRequests = 0
-
+waiting = false
 let m1c = async (key, value) => {
   concurrentRequests+=1
   const waitIfNeeded = async () => {
     while (concurrentRequests >= MAX_CONCURRENT_REQUESTS) {
+      if(!waiting) {
+        console.log("waiting")
+      }
+      waiting= true
         await new Promise(resolve => setTimeout(resolve, 100));
     }
+    waitIfNeeded()
+    waiting = false
 };   
-waitIfNeeded()
   try {
     await global.fetchAndWriteToFile(value, key);
   } catch (err) {
