@@ -139,7 +139,6 @@ function createMrService(c,
             const promises = v.map((key) => new Promise((resolve, reject) => {
               const waitIfNeeded = async () => {
                 while (this.ci >= 10) {
-                    console.log("waiting");
                     await new Promise(resolve => setTimeout(resolve, 100));
                 }
             };    
