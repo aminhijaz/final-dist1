@@ -159,7 +159,6 @@ function createMrService(c,
                   if (e) {
                     reject(e);
                   } else {
-                    i+=1
                     resolve(await this.mapFn(key, value));
                   }
                 });
