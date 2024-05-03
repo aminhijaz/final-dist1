@@ -136,7 +136,7 @@ function createMrService(c,
               callback(e, v);
             }
             let i =0
-            const promises = v.map((key) => new Promise((resolve, reject) => {
+            const promises = v.map(async (key) => await new Promise((resolve, reject) => {
               i+=1
               if (this.memory) {
                 global.distribution.local.mem.get({
