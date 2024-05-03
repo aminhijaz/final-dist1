@@ -58,8 +58,8 @@ let m1c = async (key, value) => {
   obj[""] = 1;
   return obj;
 };
-SIZE = 10
-MAX_CONCURRENT_REQUESTS = 10
+SIZE = 100
+MAX_CONCURRENT_REQUESTS = 100
 let concurrentRequests = 0
 global.fetchAndWriteToFile = async (urls, key) => {
   for (url of urls) {
