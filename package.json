@@ -20,7 +20,11 @@
   "license": "ISC",
   "dependencies": {
     "axios": "^1.6.8",
+    "cheerio": "^1.0.0-rc.12",
+    "got": "^11.8.6",
     "node-fetch": "^2.7.0",
+    "proper-lockfile": "^4.1.2",
+    "tf": "^1.0.1",
     "yargs": "^17.7.2"
   }
 }

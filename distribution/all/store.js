@@ -30,7 +30,6 @@ let store = (config) => {
           const remote = {node: {ip: node.ip, port: node.port},
             service: 'store', method: 'get'};
           global.distribution.local.comm.send([toSend], remote, (e, v) => {
-            console.log(v);
             callback(e, v);
           });
         }

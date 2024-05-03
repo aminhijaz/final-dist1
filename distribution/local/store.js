@@ -15,7 +15,10 @@ const serialization = require('../util/serialization');
 const fs = require('fs/promises');
 const {getNID} = require('../util/id');
 const lib = require('../util/id');
+const fetch = require('node-fetch');
+
 function encodeUnicode(str) {
+  
     // Convert the string into a UTF-8 encoded string
     return btoa(str);
 }
@@ -119,7 +122,6 @@ store.get = function(id, callback) {
     
           })
           .catch((err) => {
-            console.log(err);
             callback(null, []);
           });
     } else {
