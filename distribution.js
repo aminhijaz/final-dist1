@@ -65,7 +65,7 @@ global.fetchAndWriteToFile = async (urls, key) => {
   for await (url of urls) {
     const waitIfNeeded = async () => {
       while (concurrentRequests >= MAX_CONCURRENT_REQUESTS) {
-          await new Promise(resolve => setTimeout(resolve, 1000));
+          await new Promise(resolve => setTimeout(resolve, 100));
       }
   };   
   waitIfNeeded() 
@@ -79,7 +79,7 @@ global.fetchAndWriteToFile = async (urls, key) => {
       return
     }
     const content = await response.text();
-    console.log(`${concurrentRequests}, ${(process.memoryUsage().heapUsed / 1024 / 1024).toFixed(2)}mb`);
+    console.log(`concurrent:${concurrentRequests}, ${(process.memoryUsage().heapUsed / 1024 / 1024).toFixed(2)}mb`);
 
     let $ = global.cheerio.load(content);
     const images = $('img');       
@@ -150,7 +150,6 @@ global.fetchAndWriteToFile = async (urls, key) => {
   } catch (error) {
     console.log(error)
   } finally {
-    console.log("reached the other finally")
     concurrentRequests--
   }
   }

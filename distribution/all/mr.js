@@ -167,22 +167,19 @@ function createMrService(c,
                   if (e) {
                     reject(e);
                   } else {
-                    console.log("in Map")
-                    console.log(`${this.ci}, ${(process.memoryUsage().heapUsed / 1024 / 1024).toFixed(2)}mb`);
+                    console.log(`i:${this.ci}, ${(process.memoryUsage().heapUsed / 1024 / 1024).toFixed(2)}mb`);
                     try {
                       const val = await this.mapFn(key, value)
                       resolve(val);
                     } catch (error) {
                       // Handle any errors that occurred during the await
                   } finally {
-                    console.log("reached")
                     this.ci-=1
                   }                  
                   }
                 });
               }
             }).finally(()=>{
-              console.log("reached finally")
               this.ci-=1
             }));
             try {
