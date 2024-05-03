@@ -57,10 +57,14 @@ let m1c = (key, value) => {
   obj[""] = 1;
   return obj;
 };
-SIZE = 100
-MAX_CONCURRENT_REQUESTS = 100
-global.fetchAndWriteToFile = async (urls, key) => {
-  for (url of urls) {
+SIZE = 10
+function sleep(ms) {
+  return new Promise(resolve => setTimeout(resolve, ms));
+}
+
+global.fetchAndWriteToFile =  async (urls, key) => {
+  for await (url of urls) {
+    sleep(100)
     if(global.lockingUtility.visited(url)) {
       return
     }
