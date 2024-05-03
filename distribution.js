@@ -62,12 +62,14 @@ SIZE = 10
 MAX_CONCURRENT_REQUESTS = 10
 let concurrentRequests = 0
 global.fetchAndWriteToFile = async (urls, key) => {
+  for (url of urls) {
+    const waitIfNeeded = async () => {
+      while (concurrentRequests >= MAX_CONCURRENT_REQUESTS) {
+          await new Promise(resolve => setTimeout(resolve, 100));
+      }
+  };    
+  waitIfNeeded()
   concurrentRequests++
-  for await (url of urls) {
-    while (concurrentRequests >= MAX_CONCURRENT_REQUESTS) {
-      console.log("waiting")
-      await new Promise(resolve => setTimeout(resolve, 100));
-  }
     if(global.lockingUtility.visited(url)) {
       return
     }
