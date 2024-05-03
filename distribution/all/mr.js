@@ -103,6 +103,7 @@ function createListener(nNodes, id, gid, callback) {
     },
   };
 }
+
 function createMrService(c,
     node,
     id,
@@ -123,7 +124,6 @@ function createMrService(c,
     count: count,
     c: c,
     obj: {},
-    ci: 0,
     notify: function(obj, callback) {
       const n = {node: this.c, service: 'listener' + this.id, method: 'listen'};
       global.distribution.local.comm.send([obj], n, (e, v) => {
@@ -135,16 +135,7 @@ function createMrService(c,
             if (e) {
               callback(e, v);
             }
-            
             const promises = v.map((key) => new Promise((resolve, reject) => {
-              const waitIfNeeded = async () => {
-                while (this.ci >= 100) {
-                    await new Promise(resolve => setTimeout(resolve, 1000));
-                }
-            };    
-              this.ci+=1
-              waitIfNeeded()
-              
               if (this.memory) {
                 global.distribution.local.mem.get({
                   key: key,
@@ -164,19 +155,11 @@ function createMrService(c,
               } else {
                 global.distribution.local.store.get({key: key, gid:
                   this.gid}, async (e, value) => {
-
                   if (e) {
                     reject(e);
                   } else {
-                    console.log(`i:${this.ci}, ${(process.memoryUsage().heapUsed / 1024 / 1024).toFixed(2)}mb`);
-                    try {
-                      const val = await this.mapFn(key, value)
-                      resolve(val);
-                    } catch (error) {
-                      // Handle any errors that occurred during the await
-                  } finally {
-                    this.ci-=1
-                  }                  
+                    console.log(`${i}, ${(process.memoryUsage().heapUsed / 1024 / 1024).toFixed(2)}mb`);
+                    resolve(await this.mapFn(key, value));
                   }
                 });
               }
