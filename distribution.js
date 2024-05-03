@@ -60,8 +60,8 @@ let m1c = async (key, value) => {
 };
 SIZE = 100
 MAX_CONCURRENT_REQUESTS = 100
-let concurrentRequests = 0
 global.fetchAndWriteToFile = async (urls, key) => {
+  let concurrentRequests = 0
   for await (url of urls) {
     const waitIfNeeded = async () => {
       while (concurrentRequests >= MAX_CONCURRENT_REQUESTS) {
