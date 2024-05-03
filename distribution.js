@@ -47,7 +47,6 @@ let r1 = (key, values) => {
   obj[key] = values;
   return obj;
 };
-let concurrentRequests = 0
 let waiting = false
 let m1c = async (key, value) => {
   concurrentRequests+=1
@@ -208,12 +207,12 @@ function doCrawl(urls) {
     obj[key] = values;
     return obj;
   };
-  const doMapReduce = () => {
+  const doMapReduce = async () => {
     global.distribution.crawler.store.get(null, (e, v) => {
       if(v.length != 0) {
         global.distribution.crawler.mr.exec({keys: v, map: m1c, reduce: r1}, (e, v) => {
           if(v) {
-            doMapReduce()
+            setTimeout(doMapReduce(), 100)
           }
           if(e) {
             console.log(e)
