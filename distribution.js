@@ -60,22 +60,22 @@ let m1c = async (key, value) => {
 };
 SIZE = 10
 MAX_CONCURRENT_REQUESTS = 10
+let concurrentRequests = 0
 global.fetchAndWriteToFile = async (urls, key) => {
-  let concurrentRequests = 0
-  for (url of urls) {
+  concurrentRequests++
+  for await (url of urls) {
     while (concurrentRequests >= MAX_CONCURRENT_REQUESTS) {
+      console.log("waiting")
       await new Promise(resolve => setTimeout(resolve, 100));
   }
     if(global.lockingUtility.visited(url)) {
       return
     }
   try {
-    concurrentRequests++;
     const response = await global.fetch(url);
     if (!response.ok) {
       return
     }
-    concurrentRequests++;
     const content = await response.text();
     console.log(`${concurrentRequests}, ${(process.memoryUsage().heapUsed / 1024 / 1024).toFixed(2)}mb`);
 
@@ -95,7 +95,6 @@ global.fetchAndWriteToFile = async (urls, key) => {
                 return
               }
           }
-          concurrentRequests++;
           distribution.index.store.put(imageUrl, null,  (e, v) => {
           });
       }
@@ -149,6 +148,7 @@ global.fetchAndWriteToFile = async (urls, key) => {
   } catch (error) {
     console.log(error)
   } finally {
+    console.log("reached the other finally")
     concurrentRequests--
   }
   }
