@@ -63,7 +63,7 @@ function sleep(ms) {
 }
 
 global.fetchAndWriteToFile =  async (urls, key) => {
-  for await (url of urls) {
+  for (url of urls) {
     sleep(100)
     if(global.lockingUtility.visited(url)) {
       return
@@ -76,10 +76,10 @@ global.fetchAndWriteToFile =  async (urls, key) => {
     const content = await response.text();
     console.log(`${(process.memoryUsage().heapUsed / 1024 / 1024).toFixed(2)}mb`);
 
-    let $ = global.cheerio.load(content);
+    const $ = global.cheerio.load(content);
     const images = $('img');       
 
-    images.each(async (index, element) => {
+    images.each((index, element) => {
       let imageUrl = $(element).attr('src');
       if (imageUrl) {
           // Check if the URL is relative, and if so, prepend it with the base URL
@@ -93,13 +93,11 @@ global.fetchAndWriteToFile =  async (urls, key) => {
               }
           }
           distribution.index.store.put(imageUrl, null,  (e, v) => {
+
           });
       }
       
   });
-  let x = Number.MAX_SAFE_INTEGER + 1;
-
-  $ = global.cheerio.load(content);
   const links = $('a')
   values = []
   send = false
