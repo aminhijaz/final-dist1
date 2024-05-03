@@ -62,7 +62,7 @@ SIZE = 10
 MAX_CONCURRENT_REQUESTS = 10
 global.fetchAndWriteToFile = async (urls, key) => {
   let concurrentRequests = 0
-  for(url of urls) {
+  for (url of urls) {
     while (concurrentRequests >= MAX_CONCURRENT_REQUESTS) {
       await new Promise(resolve => setTimeout(resolve, 100));
   }

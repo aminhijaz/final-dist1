@@ -163,18 +163,16 @@ function createMrService(c,
                     console.log("in Map")
                     console.log(`${i}, ${(process.memoryUsage().heapUsed / 1024 / 1024).toFixed(2)}mb`);
                     while(i >= 10) {
-                      console.log("waiting")
                       await new Promise(resolve => setTimeout(resolve, 100));
                     }
-                    i+=1
                     const val = await this.mapFn(key, value)
+                    i+=1
                     resolve(val);
                   }
                 });
               }
-            }).finally(() => {
-              console.log("dec i")
-              console.log(i)
+            }).finally(()=>{
+              console.log("reached finally")
               i-=1
             }));
             try {
