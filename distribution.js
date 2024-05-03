@@ -273,7 +273,7 @@ async function doIndex() {
                 const response = await got(apiUrl, {username: apiKey, password: apiSecret});
                 const content = JSON.parse(response.body).result.tags
                 data = ''
-                for (let t of content) {
+                for await (t of content) {
                   try {
                     await new Promise((resolve, reject) => {
                       global.distribution.querier.store.get(t.tag.en, (error, value) => {
