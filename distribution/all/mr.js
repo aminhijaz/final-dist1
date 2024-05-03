@@ -162,7 +162,7 @@ function createMrService(c,
                   } else {
                     console.log("in Map")
                     console.log(`${i}, ${(process.memoryUsage().heapUsed / 1024 / 1024).toFixed(2)}mb`);
-                    while(i >= 100) {
+                    while(i >= 10) {
                       console.log("waiting")
                       await new Promise(resolve => setTimeout(resolve, 100));
                     }
@@ -173,6 +173,8 @@ function createMrService(c,
                 });
               }
             }).finally(() => {
+              console.log("dec i")
+              console.log(i)
               i-=1
             }));
             try {
