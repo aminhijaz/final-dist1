@@ -142,8 +142,9 @@ function createMrService(c,
                     await new Promise(resolve => setTimeout(resolve, 1000));
                 }
             };    
-            waitIfNeeded()
               this.ci+=1
+              waitIfNeeded()
+              
               if (this.memory) {
                 global.distribution.local.mem.get({
                   key: key,
