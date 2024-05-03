@@ -136,7 +136,7 @@ function createMrService(c,
               callback(e, v);
             }
             let i =0
-            const promises = v.map(async (key) => await new Promise((resolve, reject) => {
+            const promises = v.map((key) => new Promise((resolve, reject) => {
               i+=1
               if (this.memory) {
                 global.distribution.local.mem.get({
@@ -162,15 +162,20 @@ function createMrService(c,
                     reject(e);
                   } else {
                     console.log("in Map")
+                    console.log(`${i}, ${(process.memoryUsage().heapUsed / 1024 / 1024).toFixed(2)}mb`);
                     while(i >= 10) {
-                      console.log(i)
                       console.log("waiting")
                       await new Promise(resolve => setTimeout(resolve, 100));
                     }
-                    const val = await this.mapFn(key, value).finally(()=>{
-                      i-=1
-                    })
-                    resolve(val);
+                    try {
+                      const val = await this.mapFn(key, value)
+                      resolve(val);
+                    } catch (error) {
+                      // Handle any errors that occurred during the await
+                  } finally {
+                    console.log("reached")
+                    i-=1
+                  }                  
                   }
                 });
               }
