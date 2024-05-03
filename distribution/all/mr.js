@@ -166,7 +166,7 @@ function createMrService(c,
                     reject(e);
                   } else {
                     console.log("in Map")
-                    console.log(`${i}, ${(process.memoryUsage().heapUsed / 1024 / 1024).toFixed(2)}mb`);
+                    console.log(`${this.ci}, ${(process.memoryUsage().heapUsed / 1024 / 1024).toFixed(2)}mb`);
                     try {
                       const val = await this.mapFn(key, value)
                       resolve(val);
